@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nrml xmlns="http://openquake.org/xmlns/nrml/0.4">
+<fragilityModel format="continuous">
+	<description> {{ model }} </description>
+	<limitStates>
+		slight
+		moderate
+		extensive
+		complete
+	</limitStates>
+
+	{% for taxonomy in taxonomies %}
+	<ffs type="{{ taxonomy.dist_type }}">
+		<taxonomy>{{ taxonomy.name }}</taxonomy>
+		
+		{% if taxonomy.imt == 'SA' %}
+		<IML IMT="SA({{ taxonomy.sa_period }})" imlUnit="{{ taxonomy.unit }}" minIML="{{ taxonomy.min_iml }}" maxIML="{{ taxonomy.max_iml }}"/>
+		{% else %}
+		<IML IMT="{{ taxonomy.imt }}" imlUnit="{{ taxonomy.unit }}" minIML="{{ taxonomy.min_iml }}" maxIML="{{ taxonomy.max_iml }}"/>
+		{% endif %}
+
+		<ffc ls="slight">
+			{% for e in functions %}
+			{% if e.limit_state == 'slight' and e.name == taxonomy.name %}
+			<params mean="{{ e.mean }}" stddev="{{ e.stddev }}" />
+			{%  endif %}
+			{% endfor%}
+		</ffc>
+
+		<ffc ls="moderate">
+			{% for e in functions %}
+			{% if e.limit_state == 'moderate' and e.name == taxonomy.name %}
+			<params mean="{{ e.mean }}" stddev="{{ e.stddev }}" />
+			{%  endif %}
+			{% endfor%}
+		</ffc>
+
+		<ffc ls="extensive">
+			{% for e in functions %}
+			{% if e.limit_state == 'extensive' and e.name == taxonomy.name %}
+			<params mean="{{ e.mean }}" stddev="{{ e.stddev }}" />
+			{%  endif %}
+			{% endfor%}
+		</ffc>
+
+		<ffc ls="complete">
+			{% for e in functions %}
+			{% if e.limit_state == 'complete' and e.name == taxonomy.name %}
+			<params mean="{{ e.mean }}" stddev="{{ e.stddev }}" />
+			{%  endif %}
+			{% endfor%}
+		</ffc>
+
+	</ffs>
+	{% endfor %}
+
+</fragilityModel>
+</nrml>

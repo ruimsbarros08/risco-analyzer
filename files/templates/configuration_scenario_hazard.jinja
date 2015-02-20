@@ -1,0 +1,51 @@
+[general]
+
+description = {{ name }}
+calculation_mode = scenario
+random_seed = {{ random_seed }}
+
+[geometry]
+
+region = {{ region }}
+region_grid_spacing = {{ grid_spacing }}
+
+[erf]
+
+rupture_mesh_spacing = {{ rupture_mesh_spacing }}
+
+[site_params]
+
+{% if sites_type == 'VARIABLE_CONDITIONS' %}
+site_model_file = site_model.xml
+
+{% else %}
+reference_vs30_type = {{ vs30type }}
+reference_vs30_value = {{ vs30 }}
+reference_depth_to_2pt5km_per_sec = {{ z1pt0 }}
+reference_depth_to_1pt0km_per_sec = {{ z2pt5 }}
+{% endif %}
+
+[calculation]
+
+rupture_model_file = rupture_model.xml
+intensity_measure_types = {{ imt_list }}
+
+truncation_level = {{ truncation_level }}
+maximum_distance = {{ max_distance }}
+gsim = {{ gmpe }}
+
+{% if correlation_model %}
+ground_motion_correlation_model = JB2009
+{% if vs30_clustering %}
+ground_motion_correlation_params = {"vs30_clustering": True}
+{% else %}
+ground_motion_correlation_params = {"vs30_clustering": Frue}
+{% endif %}
+{% endif %}
+
+number_of_ground_motion_fields = {{ n_gmf }}
+
+
+[output]
+
+export_dir = ./tmp

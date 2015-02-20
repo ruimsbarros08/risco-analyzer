@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nrml xmlns="http://openquake.org/xmlns/nrml/0.4" xmlns:gml="http://www.opengis.net/gml">
+	<exposureModel
+	  id="{{ model.id }}"
+	  category="buildings"
+	  taxonomySource="{{ model.taxonomy_source }}">
+	  <description>
+	    {{ model.name }}
+	  </description>
+	  <conversions>
+	  	{% if model.area_type %}
+	    <area type="{{ model.area_type }}" unit="{{ model.area_unit }}"/>
+	    {% endif %}
+	    <costTypes>
+	    	{% if model.struct_cost_type %}
+	      	<costType name="structural" type="{{ model.struct_cost_type }}" unit="{{ model.struct_cost_currency }}"  />
+		    {% endif %}
+		    {% if model.non_struct_cost_type %}
+	      	<costType name="non_structural" type="{{ model.non_struct_cost_type }}" unit="{{ model.non_struct_cost_currency }}"  />
+		    {% endif %}
+	    	{% if model.contents_cost_type %}
+	      	<costType name="contents" type="{{ model.contents_cost_type }}" unit="{{ model.contents_cost_currency }}"  />
+		    {% endif %}
+	    	{% if model.business_int_cost_type %}
+	      	<costType name="business_interruption" type="{{ model.business_int_cost_type }}" unit="{{ model.business_int_cost_currency }}"  />
+		    {% endif %}
+	    </costTypes>
+	    {% if model.deductible %}
+	    	{% if model.deductible == 'absolute' %}
+		    <deductible isAbsolute="true"/>
+		    {% else %}
+		    <deductible isAbsolute="false"/>
+		    {% endif %}
+	    {% endif %}
+	    {% if model.insurance_limit %}
+	    	{% if model.insurance_limit == 'absolute' %}
+		    <insuranceLimit isAbsolute="true"/>
+		    {% else %}
+		    <insuranceLimit isAbsolute="false"/>
+		    {% endif %}
+	    {% endif %}
+	  </conversions>
+	  <assets>
+	  	{% for asset in assets %}
+	   <asset id= "{{asset.name}}" area= "{{asset.area}}"  number= "{{asset.n_buildings}}"  taxonomy= "{{asset.taxonomy}}" >
+	    <location lon="{{asset.lon}}" lat="{{asset.lat}}" />
+	    <costs>
+			{% if asset.struct_cost %}
+	      		<cost type="structural" value= "{{asset.struct_cost}}" {% if asset.struct_deductible %} deductible="{{ asset.struct_deductible }}" {% endif %} {% if asset.struct_insurance_limit %} insuranceLimit="{{ asset.struct_insurance_limit }}" {% endif %} {% if asset.retrofitting_cost %} retrofitted="{{ asset.retrofitting_cost }}" {% endif %} />
+	      	{% endif %}
+			{% if asset.non_struct_cost %}
+	      		<cost type="non_structural" value= "{{asset.non_struct_cost}}" {% if asset.non_struct_deductible %} deductible="{{ asset.non_struct_deductible }}" {% endif %} {% if asset.non_struct_insurance_limit %} insuranceLimit="{{ asset.non_struct_insurance_limit }}" {% endif %}/>
+	      	{% endif %}
+			{% if asset.contents_cost %}
+	      		<cost type="contents" value= "{{asset.contents_cost}}" {% if asset.contents_deductible %} deductible="{{ asset.contents_deductible }}" {% endif %} {% if asset.contents_insurance_limit %} insuranceLimit="{{ asset.contents_insurance_limit }}" {% endif %}/>
+	      	{% endif %}
+			{% if asset.business_int_cost %}
+	      		<cost type="business_interruption" value= "{{asset.business_int_cost}}" {% if asset.business_int_deductible %} deductible="{{ asset.business_int_deductible }}" {% endif %} {% if asset.business_int_insurance_limit %} insuranceLimit="{{ asset.business_int_insurance_limit }}" {% endif %}/>
+	      	{% endif %}
+	    </costs>
+	      <occupancies>
+	      	{%if asset.oc_day %}
+	       		<occupancy occupants= "{{asset.oc_day}}" period="Day" />
+	       	{% endif %}
+	      	{%if asset.oc_day %}
+	       		<occupancy occupants= "{{asset.oc_night}}" period="Night" />
+	       	{% endif %}
+	      	{%if asset.oc_day %}
+	       		<occupancy occupants= "{{asset.oc_transit}}" period="Transit" />
+	       	{% endif %}
+	      </occupancies>
+	    </asset>
+    	{% endfor %}
+	</assets>
+</exposureModel>
+</nrml>

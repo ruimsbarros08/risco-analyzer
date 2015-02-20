@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nrml xmlns:gml="http://www.opengis.net/gml"
+  xmlns="http://openquake.org/xmlns/nrml/0.4">
+    <siteModel>
+    	{% for site in sites %}
+
+	        <site lon="{{ site.lon }}" lat="{{ site.lat }}" vs30="{{ site.vs30 }}" vs30Type="{{ site.vs30type }}" z1pt0="{{ site.z1pt0 }}" z2pt5="{{ site.z2pt5 }}" />
+        
+        {% endfor %}
+    </siteModel>
+</nrml>

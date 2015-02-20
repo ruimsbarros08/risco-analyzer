@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nrml xmlns="http://openquake.org/xmlns/nrml/0.4" xmlns:gml="http://www.opengis.net/gml">
+	<exposureModel
+	  id="19"
+	  category="buildings"
+	  taxonomySource="GEM Taxonomy">
+	  <description>
+	    exp_mod_1
+	  </description>
+	  <conversions>
+	  	
+	    <area type="per_asset" unit="square meters"/>
+	    
+	    <costTypes>
+	    	
+	      	<costType name="structural" type="per_area" unit="EUR"  />
+		    
+		    
+	    	
+	    	
+	    </costTypes>
+	    
+	    	
+		    <deductible isAbsolute="false"/>
+		    
+	    
+	    
+	    	
+		    <insuranceLimit isAbsolute="false"/>
+		    
+	    
+	  </conversions>
+	  <assets>
+	  	
+	   <asset id= "a24" area= "123.12"  number= "3"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.33374" lat="41.88632" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.569134092" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "1.644172909" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "1.187469844" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a23" area= "123.12"  number= "1"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.33374" lat="41.88632" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.189711364" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "0.548057636" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "0.395823281" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a22" area= "123.12"  number= "2"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.33374" lat="41.88632" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.379422728" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "1.096115273" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "0.791646563" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a21" area= "123.12"  number= "2"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.33374" lat="41.88632" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.379422728" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "1.096115273" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "0.791646563" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a20" area= "123.12"  number= "8"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.33374" lat="41.88632" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "1.517690912" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "4.384461092" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "3.166586251" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a19" area= "123.12"  number= "2"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.33374" lat="41.88632" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.379422728" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "1.096115273" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "0.791646563" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a18" area= "123.12"  number= "3"  taxonomy= "RC_1_PC" >
+	    <location lon="-8.33374" lat="41.88632" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.569134092" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "1.644172909" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "1.187469844" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a17" area= "123.12"  number= "4"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.3961" lat="41.86093" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "1.504244498" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "4.8574461" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "3.19641863" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a16" area= "123.12"  number= "7"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.3961" lat="41.86093" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "2.632427872" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "8.500530675" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "5.593732603" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a15" area= "123.12"  number= "3"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.3961" lat="41.86093" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "1.128183374" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "3.643084575" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "2.397313973" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a14" area= "123.12"  number= "3"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.3961" lat="41.86093" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "1.128183374" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "3.643084575" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "2.397313973" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a13" area= "123.12"  number= "3"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.3961" lat="41.86093" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "1.128183374" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "3.643084575" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "2.397313973" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a12" area= "123.12"  number= "3"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.3961" lat="41.86093" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "1.128183374" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "3.643084575" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "2.397313973" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a11" area= "123.12"  number= "1"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.3961" lat="41.86093" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.376061125" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "1.214361525" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "0.799104658" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a10" area= "123.12"  number= "2"  taxonomy= "RC_1_PC" >
+	    <location lon="-8.3961" lat="41.86093" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.752122249" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "2.42872305" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "1.598209315" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a9" area= "123.12"  number= "13"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "5.254781615" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "17.71045604" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "10.7224224" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a8" area= "123.12"  number= "14"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "5.658995585" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "19.07279882" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "11.54722412" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a7" area= "123.12"  number= "7"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "2.829497793" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "9.536399408" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "5.773612061" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a6" area= "123.12"  number= "7"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "2.829497793" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "9.536399408" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "5.773612061" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a5" area= "123.12"  number= "4"  taxonomy= "RC_D_1_C" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "1.616855882" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "5.44937109" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "3.299206892" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a4" area= "123.12"  number= "4"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "1.616855882" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "5.44937109" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "3.299206892" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a3" area= "123.12"  number= "8"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "3.233711763" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "10.89874218" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "6.598413784" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a2" area= "123.12"  number= "5"  taxonomy= "RC_C_1_MC" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "2.021069852" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "6.811713863" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "4.124008615" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a1" area= "123.12"  number= "6"  taxonomy= "RC_1_PC" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "2.425283822" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "8.174056635" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "4.948810338" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	   <asset id= "a0" area= "123.12"  number= "2"  taxonomy= "RC_1_PC" >
+	    <location lon="-8.44323" lat="41.88163" />
+	    <costs>
+			
+	      		<cost type="structural" value= "628.19"    />
+	      	
+			
+			
+			
+	    </costs>
+	      <occupancies>
+	      	
+	       		<occupancy occupants= "0.808427941" period="Day" />
+	       	
+	      	
+	       		<occupancy occupants= "2.724685545" period="Night" />
+	       	
+	      	
+	       		<occupancy occupants= "1.649603446" period="Transit" />
+	       	
+	      </occupancies>
+	    </asset>
+    	
+	</assets>
+</exposureModel>
+</nrml>

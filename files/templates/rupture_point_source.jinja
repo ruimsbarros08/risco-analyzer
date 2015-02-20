@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nrml xmlns:gml="http://www.opengis.net/gml" xmlns="http://openquake.org/xmlns/nrml/0.4">
+	<simpleFaultRupture>
+		<magnitude>{{ magnitude }}</magnitude>
+		<rake>{{ rake }}</rake>
+		<hypocenter lat="{{ lat }}" lon="{{ lon }}" depth="{{ depth }}"/>
+		<simpleFaultGeometry>
+			<gml:LineString>
+				<gml:posList>
+						{{ lon }} {{ lat }}
+						{{ lon * 1.01}} {{ lat * 1.01 }}
+				</gml:posList>
+			</gml:LineString>	
+			<dip>{{ dip }}</dip>
+			<upperSeismoDepth> 0 </upperSeismoDepth>
+			<lowerSeismoDepth>{{ depth }}</lowerSeismoDepth>
+		</simpleFaultGeometry>
+	</simpleFaultRupture>
+</nrml>

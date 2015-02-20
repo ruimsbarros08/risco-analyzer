@@ -1,0 +1,13 @@
+[general]
+
+description = {{ name }}
+calculation_mode = scenario_damage
+
+fragility_file = fragility_model.xml
+exposure_file = exposure_model.xml
+
+maximum_distance = {{ max_hazard_dist }}
+
+region_constraint = {{ region }}
+
+export_dir = ./tmp
