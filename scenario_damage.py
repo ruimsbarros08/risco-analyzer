@@ -11,7 +11,7 @@ templateLoader = jinja2.FileSystemLoader(PATH + 'templates/')
 templateEnv = jinja2.Environment(loader=templateLoader)
 
 
-def create_fragility_model(job_id, con):
+def create_fragility_model(job_id, con, folder):
     print "-------"
     print "Creating Fragility Model"
 
@@ -68,12 +68,12 @@ def create_fragility_model(job_id, con):
 
     frag_output = "\n".join(new_output)
 
-    with open(PATH + "scenario_damage/"+str(job_id)+"/fragility_model.xml", "wb+") as file:
+    with open(folder+"/fragility_model.xml", "wb+") as file:
         file.write(frag_output)
         file.close()
 
 
-def create_exposure_model(job_id, con):
+def create_exposure_model(job_id, con, folder):
     print "-------"
     print "Creating Exposure Model"
 
@@ -143,13 +143,13 @@ def create_exposure_model(job_id, con):
     exp_template = templateEnv.get_template('exposure_model.jinja')
     exp_output = exp_template.render(dict(model=model, assets=assets))
 
-    with open(PATH + "scenario_damage/"+str(job_id)+"/exposure_model.xml", "wb") as file:
+    with open(folder+"/exposure_model.xml", "wb") as file:
         file.write(exp_output)
         file.close()
 
 
 
-def create_ini_file(job_id, con):
+def create_ini_file(job_id, con, folder):
     print "-------"
     print "Creating .ini file"
 
@@ -165,15 +165,15 @@ def create_ini_file(job_id, con):
     conf_template = templateEnv.get_template('configuration_scenario_damage.jinja')
     conf_output = conf_template.render(params)
 
-    with open(PATH + "scenario_damage/"+str(job_id)+"/configuration.ini", "wb") as file:
+    with open(folder+"/configuration.ini", "wb") as file:
         file.write(conf_output)
         file.close()
 
 
 
-def run(job_id, con):
+def run(job_id, con, folder):
     print "-------"
-    print "Running damage..."
+    print "Running scenario damage..."
 
     cur = con.cursor()
     cur.execute('select jobs_scenario_hazard.oq_id from jobs_scenario_damage, jobs_scenario_hazard \
@@ -181,7 +181,7 @@ def run(job_id, con):
                 and jobs_scenario_damage.id = %s', (job_id,))
     hazard_id = cur.fetchone()[0]
 
-    proc_damage = subprocess.Popen(["/usr/local/openquake/oq-engine/bin/openquake", "--log-file", "/dev/null", "--run-risk", PATH + "scenario_damage/"+str(job_id)+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
+    proc_damage = subprocess.Popen(["/usr/local/openquake/oq-engine/bin/openquake", "--log-file", "/dev/null", "--run-risk", folder+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
     proc_damage.wait()
     output_proc_damage = proc_damage.stdout.read().split("\n")
 
@@ -212,15 +212,24 @@ def start(id, connection):
     print "-------"
     print "Starting calculating scenario damage: "+str(id)
 
+    cur = connection.cursor()
+    cur.execute('select current_database()')
+    db_name = cur.fetchone()[0]
+
+    FOLDER = PATH + db_name + "scenario_damage/"+str(id)
+
     try:
-        os.makedirs(PATH + "scenario_damage/"+str(id))
+        os.makedirs(FOLDER)
     except:
         pass
 
     
-    create_fragility_model(id, connection)
-    create_exposure_model(id, connection)
-    create_ini_file(id, connection)
-    oq_id = run(id, connection)
+    create_fragility_model(id, connection, FOLDER)
+    create_exposure_model(id, connection, FOLDER)
+    create_ini_file(id, connection, FOLDER)
+    oq_id = run(id, connection, FOLDER)
     save(id, oq_id, connection)
+
+    cur.execute('update jobs_scenario_damage set status = "FINISHED" where id = %s', (id,))
+    connection.commit()
     

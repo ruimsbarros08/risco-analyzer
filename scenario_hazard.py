@@ -11,7 +11,7 @@ templateLoader = jinja2.FileSystemLoader(PATH + 'templates/')
 templateEnv = jinja2.Environment(loader=templateLoader)
 
 
-def create_site_model(job_id, con):
+def create_site_model(job_id, con, folder):
     print "-------"
     print "Creating Site Model"
 
@@ -32,13 +32,13 @@ def create_site_model(job_id, con):
     site_template = templateEnv.get_template('site_model.jinja')
     site_output = site_template.render(dict(sites=sites))
 
-    with open(PATH + "scenario_hazard/"+str(job_id)+"/site_model.xml", "wb") as file:
+    with open(folder+"/site_model.xml", "wb") as file:
         file.write(site_output)
         file.close()
 
 
 
-def create_rupture_model(job_id, con):
+def create_rupture_model(job_id, con, folder):
     print "-------"
     print "Creating Rupture Model"
 
@@ -73,31 +73,31 @@ def create_rupture_model(job_id, con):
         rupture_template = templateEnv.get_template('rupture_fault_source.jinja')
         rupture_output = rupture_template.render(rupt)
 
-    with open(PATH + "scenario_hazard/"+str(job_id)+"/rupture_model.xml", "wb") as file:
+    with open(folder+"/rupture_model.xml", "wb") as file:
         file.write(rupture_output)
         file.close()
 
 
 
-def create_ini_file(job_id, params):
+def create_ini_file(job_id, params, folder):
     print "-------"
     print "Creating .ini file"
 
     conf_template = templateEnv.get_template('configuration_scenario_hazard.jinja')
     conf_output = conf_template.render(params)
 
-    with open(PATH + "scenario_hazard/"+str(job_id)+"/configuration.ini", "wb") as file:
+    with open(folder+"/configuration.ini", "wb") as file:
         file.write(conf_output)
         file.close()
 
 
 
-def run(job_id, con):
+def run(job_id, con, folder):
     print "-------"
-    print "Running hazard..."
+    print "Running scenario hazard..."
     
     cur = con.cursor()
-    proc_hazard = subprocess.Popen(["/usr/local/openquake/oq-engine/bin/openquake", "--log-file", "/dev/null", "--rh", PATH + "scenario_hazard/"+str(job_id)+"/configuration.ini"], stdout=subprocess.PIPE)
+    proc_hazard = subprocess.Popen(["/usr/local/openquake/oq-engine/bin/openquake", "--log-file", "/dev/null", "--rh", folder+"/configuration.ini"], stdout=subprocess.PIPE)
     proc_hazard.wait()
     output_proc_hazard = proc_hazard.stdout.read().split("\n")
     hazard_output_id = output_proc_hazard[2].split()[0]
@@ -158,16 +158,25 @@ def start(id, connection):
                 correlation_model = data[15],
                 vs30_clustering = data[16],
                 n_gmf = data[17])
+    
+    cur = connection.cursor()
+    cur.execute('select current_database()')
+    db_name = cur.fetchone()[0]
+
+    FOLDER = PATH + db_name + "scenario_hazard/"+str(id)
+
     try:
-        os.makedirs(PATH + "scenario_hazard/"+str(id))
+        os.makedirs(FOLDER)
     except:
         pass
 
     if params['sites_type'] == 'VARIABLE_CONDITIONS':
-        create_site_model(id, connection)
+        create_site_model(id, connection, FOLDER)
     
-    create_rupture_model(id, connection)
-    create_ini_file(id, params)
-    oq_id = run(id, connection)
+    create_rupture_model(id, connection, FOLDER)
+    create_ini_file(id, params, FOLDER)
+    oq_id = run(id, connection, FOLDER)
     save(id, oq_id, connection)
 
+    cur.execute('update jobs_scenario_hazard set status = "FINISHED" where id = %s', (id,))
+    connection.commit()
