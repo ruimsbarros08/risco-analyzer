@@ -5,7 +5,7 @@ import os
 import json
 import subprocess
 
-PATH = '/home/prise/Risco/files/'
+PATH = os.path.dirname(os.path.realpath(__file__)) + '/files/'
 
 templateLoader = jinja2.FileSystemLoader(PATH + 'templates/')
 templateEnv = jinja2.Environment(loader=templateLoader)
@@ -163,7 +163,7 @@ def start(id, connection):
     cur.execute('select current_database()')
     db_name = cur.fetchone()[0]
 
-    FOLDER = PATH + db_name + "scenario_hazard/"+str(id)
+    FOLDER = PATH + db_name + "/scenario_hazard/"+str(id)
 
     try:
         os.makedirs(FOLDER)

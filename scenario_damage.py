@@ -5,7 +5,7 @@ import os
 import json
 import subprocess
 
-PATH = '/home/prise/Risco/files/'
+PATH = os.path.dirname(os.path.realpath(__file__)) + '/files/'
 
 templateLoader = jinja2.FileSystemLoader(PATH + 'templates/')
 templateEnv = jinja2.Environment(loader=templateLoader)
@@ -73,7 +73,7 @@ def create_fragility_model(job_id, con, folder):
         file.close()
 
 
-def create_exposure_model(job_id, con, folder):
+def create_exposure_model(id, con, folder):
     print "-------"
     print "Creating Exposure Model"
 
@@ -82,10 +82,9 @@ def create_exposure_model(job_id, con, folder):
                 struct_cost_type, struct_cost_currency, non_struct_cost_type, non_struct_cost_currency, \
                 contents_cost_type, contents_cost_currency, business_int_cost_type, business_int_cost_currency, \
                 deductible, insurance_limit, eng_models_building_taxonomy_source.name \
-                from eng_models_exposure_model, jobs_scenario_damage, eng_models_building_taxonomy_source \
-                where eng_models_exposure_model.id = jobs_scenario_damage.exposure_model_id \
-                and jobs_scenario_damage.id = %s \
-                and eng_models_exposure_model.taxonomy_source_id = eng_models_building_taxonomy_source.id', (job_id,))
+                from eng_models_exposure_model, eng_models_building_taxonomy_source \
+                where eng_models_exposure_model.id = %s \
+                and eng_models_exposure_model.taxonomy_source_id = eng_models_building_taxonomy_source.id', (id,))
     e =  cur.fetchone()
 
     model = dict(id = e[0],
@@ -109,11 +108,10 @@ def create_exposure_model(job_id, con, folder):
                 non_struct_cost, non_struct_deductible, non_struct_insurance_limit, \
                 contents_cost, contents_deductible, contents_insurance_limit, business_int_cost, business_int_deductible, business_int_insurance_limit, \
                 oc_day, oc_night, oc_transit, eng_models_building_taxonomy.name \
-                from eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model, jobs_scenario_damage \
+                from eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model \
                 where eng_models_exposure_model.id = eng_models_asset.model_id \
-                and eng_models_exposure_model.id = jobs_scenario_damage.exposure_model_id \
-                and eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id \
-                and jobs_scenario_damage.id = %s', (job_id,))
+                and eng_models_exposure_model.id = %s \
+                and eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id', (id,))
 
     assets = [dict(id = asset[0],
                     lon = asset[1],
@@ -216,7 +214,7 @@ def start(id, connection):
     cur.execute('select current_database()')
     db_name = cur.fetchone()[0]
 
-    FOLDER = PATH + db_name + "scenario_damage/"+str(id)
+    FOLDER = PATH + db_name + "/scenario_damage/"+str(id)
 
     try:
         os.makedirs(FOLDER)
@@ -225,7 +223,11 @@ def start(id, connection):
 
     
     create_fragility_model(id, connection, FOLDER)
-    create_exposure_model(id, connection, FOLDER)
+
+    cur.execute('select exposure_model_id from jobs_scenario_damage where id = %s', (id,))
+    exposure_model_id = cur.fetchone()[0]
+    create_exposure_model(exposure_model_id, connection, FOLDER)
+    
     create_ini_file(id, connection, FOLDER)
     oq_id = run(id, connection, FOLDER)
     save(id, oq_id, connection)

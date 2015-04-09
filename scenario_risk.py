@@ -7,7 +7,7 @@ import subprocess
 
 from scenario_damage import create_exposure_model
 
-PATH = '/home/prise/Risco/files/'
+PATH = os.path.dirname(os.path.realpath(__file__)) + '/files/'
 
 templateLoader = jinja2.FileSystemLoader(PATH + 'templates/')
 templateEnv = jinja2.Environment(loader=templateLoader)
@@ -22,18 +22,20 @@ def create_vulnerability_model(id, con, folder):
                 from eng_models_vulnerability_model \
                 where id = %s', (id,))
 
-    if cur.fetchone()[6] == 'SA':
-        imt = 'SA('+str(cur.fetchone()[7])+')'
+    model_data = cur.fetchone()
+
+    if model_data[6] == 'SA':
+        imt = 'SA('+str(model_data[7])+')'
     else:
-        imt = cur.fetchone()[6]
+        imt = model_data[6]
 
     model = {
-            'name': cur.fetchone()[2],
-            'asset_category': cur.fetchone()[4],
-            'loss_category': cur.fetchone()[5],
+            'name': model_data[2],
+            'asset_category': model_data[4],
+            'loss_category': model_data[5],
             'imt': imt,
-            'iml': cur.fetchone()[8],
-            'type': cur.fetchone()[13]
+            'iml': model_data[8],
+            'type': model_data[13]
                 }
 
     cur.execute('select eng_models_vulnerability_function.probabilistic_distribution, eng_models_vulnerability_function.loss_ratio, \
@@ -48,7 +50,7 @@ def create_vulnerability_model(id, con, folder):
 
 
     vul_template = templateEnv.get_template('vulnerability_model.jinja')
-    vul_output = frag_template.render(dict(model= model, taxonomies= taxonomies))
+    vul_output = vul_template.render(dict(model= model, taxonomies= taxonomies))
 
     new_output = []
 
@@ -133,7 +135,7 @@ def start(id, connection):
     cur.execute('select current_database()')
     db_name = cur.fetchone()[0]
 
-    FOLDER = PATH + db_name + "scenario_risk/"+str(id)
+    FOLDER = PATH + db_name + "/scenario_risk/"+str(id)
 
     try:
         os.makedirs(FOLDER)
@@ -144,8 +146,11 @@ def start(id, connection):
                 where scenario_risk_id = %s', [id])
     for model in cur.fetchall():
         create_vulnerability_model(model[0], connection, FOLDER)
-
-    create_exposure_model(id, connection, FOLDER)
+    
+    cur.execute('select exposure_model_id from jobs_scenario_risk where id = %s', (id,))
+    exposure_model_id = cur.fetchone()[0]
+    create_exposure_model(exposure_model_id, connection, FOLDER)
+    
     create_ini_file(id, connection, FOLDER)
     oq_id = run(id, connection, FOLDER)
     save(id, oq_id, connection)
