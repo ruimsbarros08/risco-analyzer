@@ -82,7 +82,7 @@ def create_ini_file(job_id, con, folder):
                 max_hazard_dist = data[1],
                 region = data[2].split('(')[2].split(')')[0],
                 master_seed = data[3],
-                vul_correlation_coefficient = data[4]
+                vul_correlation_coefficient = data[4],
                 insured_losses = data[5],
                 time_of_the_day = data[6]
                     )
