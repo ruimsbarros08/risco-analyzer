@@ -25,10 +25,10 @@
 	      	<costType name="business_interruption" type="{{ model.business_int_cost_type }}" unit="{{ model.business_int_cost_currency }}"  />
 		    {% endif %}
 	    </costTypes>
-	    {% if model.deductible %}
+	    {% if model.deductible == 'absolute' %}
 		    <deductible isAbsolute="true"/>
 	    {% endif %}
-	    {% if model.insurance_limit %}
+	    {% if model.insurance_limit == 'absolute' %}
 		    <insuranceLimit isAbsolute="true"/>
 	    {% endif %}
 	  </conversions>
