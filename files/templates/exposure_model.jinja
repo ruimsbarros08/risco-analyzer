@@ -26,18 +26,10 @@
 		    {% endif %}
 	    </costTypes>
 	    {% if model.deductible %}
-	    	{% if model.deductible == 'absolute' %}
 		    <deductible isAbsolute="true"/>
-		    {% else %}
-		    <deductible isAbsolute="false"/>
-		    {% endif %}
 	    {% endif %}
 	    {% if model.insurance_limit %}
-	    	{% if model.insurance_limit == 'absolute' %}
 		    <insuranceLimit isAbsolute="true"/>
-		    {% else %}
-		    <insuranceLimit isAbsolute="false"/>
-		    {% endif %}
 	    {% endif %}
 	  </conversions>
 	  <assets>
