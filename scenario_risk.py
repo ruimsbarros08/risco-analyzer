@@ -80,6 +80,12 @@ def create_ini_file(job_id, con, folder):
                 where id = %s", (job_id,))
     data = cur.fetchone()
 
+    cur.execute("select eng_models_vulnerability_model.type \
+                from jobs_scenario_risk_vulnerability_models, eng_models_vulnerability_model \
+                where jobs_scenario_risk_vulnerability_models.job_id = %s \
+                and jobs_scenario_risk_vulnerability_models.model_id = eng_models_vulnerability_model.id", (job_id,))
+    vulnerability = cur.fetchall()
+
     params = dict(name= data[0],
                 max_hazard_dist = data[1],
                 region = data[2].split('(')[2].split(')')[0],
@@ -90,7 +96,7 @@ def create_ini_file(job_id, con, folder):
                     )
 
     conf_template = templateEnv.get_template('configuration_scenario_risk.jinja')
-    conf_output = conf_template.render(params)
+    conf_output = conf_template.render({'model': params, 'vulnerability': vulnerability})
 
     with open(folder+"/configuration.ini", "wb") as file:
         file.write(conf_output)
