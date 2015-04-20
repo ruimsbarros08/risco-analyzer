@@ -82,8 +82,8 @@ def create_ini_file(job_id, con, folder):
 
     cur.execute("select eng_models_vulnerability_model.type \
                 from jobs_scenario_risk_vulnerability_models, eng_models_vulnerability_model \
-                where jobs_scenario_risk_vulnerability_models.job_id = %s \
-                and jobs_scenario_risk_vulnerability_models.model_id = eng_models_vulnerability_model.id", (job_id,))
+                where jobs_scenario_risk_vulnerability_models.scenario_risk_id = %s \
+                and jobs_scenario_risk_vulnerability_models.vulnerability_model_id = eng_models_vulnerability_model.id", (job_id,))
     vulnerability = cur.fetchall()
 
     params = dict(name= data[0],
