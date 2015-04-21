@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <nrml xmlns="http://openquake.org/xmlns/nrml/0.4">
 <fragilityModel format="continuous">
-	<description> {{ model }} </description>
+	<description> {{ model[0] }} </description>
 	<limitStates>
-		slight
-		moderate
-		extensive
-		complete
+		{% for state in model[1] %}
+			{{state}}
+		{% endfor %}
 	</limitStates>
 
 	{% for taxonomy in taxonomies %}

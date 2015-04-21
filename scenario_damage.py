@@ -16,11 +16,11 @@ def create_fragility_model(job_id, con, folder):
     print "Creating Fragility Model"
 
     cur = con.cursor()
-    cur.execute('select eng_models_fragility_model.name \
+    cur.execute('select eng_models_fragility_model.name, eng_models_fragility_model.limit_states \
                 from jobs_scenario_damage, eng_models_fragility_model \
                 where jobs_scenario_damage.fragility_model_id = eng_models_fragility_model.id \
                 and jobs_scenario_damage.id = %s', (job_id,))
-    model = cur.fetchone()[0]
+    model = cur.fetchone()
 
     cur.execute('select eng_models_building_taxonomy.name, eng_models_taxonomy_fragility_model.dist_type, \
                 eng_models_taxonomy_fragility_model.imt, eng_models_taxonomy_fragility_model.sa_period, eng_models_taxonomy_fragility_model.unit, \
