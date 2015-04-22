@@ -178,5 +178,5 @@ def start(id, connection):
     oq_id = run(id, connection, FOLDER)
     save(id, oq_id, connection)
 
-    cur.execute('update jobs_scenario_hazard set status = "FINISHED" where id = %s', (id,))
+    cur.execute("update jobs_scenario_hazard set status = 'FINISHED' where id = %s", (id,))
     connection.commit()

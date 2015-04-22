@@ -128,7 +128,17 @@ def save(job_id, oq_id, con):
     print "Storing the results. OQ_id: "+str(oq_id)
     
     cur = con.cursor()
-    cur.execute("", (job_id, oq_id))
+    cur.execute("INSERT INTO jobs_scenario_risk_results (job_vul_id, asset_id, mean, stddev) \
+                SELECT jobs_scenario_risk_vulnerability_model.id, eng_models_asset.id, \
+                foreign_loss_map_data.value, foreign_loss_map_data.std_dev \
+                FROM foreign_loss_map, foreign_loss_map_data, \
+                jobs_scenario_risk_vulnerability_model, eng_models_vulnerability_model, eng_models_asset \
+                WHERE foreign_loss_map.output_id = %s \
+                AND foreign_loss_map.id = foreign_loss_map_data.loss_map_id \
+                AND eng_models_vulnerability_model.type LIKE foreign_loss_map.loss_type || '%' \
+                AND eng_models_vulnerability_model.id = jobs_scenario_risk_vulnerability_model.vulnerability_model_id \
+                AND jobs_scenario_risk_vulnerability_model.job_id = %s \
+                AND eng_models_asset.name = foreign_loss_map_data.asset_ref", (oq_id, job_id))
     con.commit()
 
 
@@ -161,6 +171,6 @@ def start(id, connection):
     oq_id = run(id, connection, FOLDER)
     save(id, oq_id, connection)
 
-    cur.execute('update jobs_scenario_risk set status = "FINISHED" where id = %s', (id,))
+    cur.execute("update jobs_scenario_risk set status = 'FINISHED' where id = %s", (id,))
     connection.commit()
     
