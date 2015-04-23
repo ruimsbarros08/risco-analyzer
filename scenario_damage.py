@@ -73,7 +73,7 @@ def create_fragility_model(job_id, con, folder):
         file.close()
 
 
-def create_exposure_model(id, con, folder):
+def create_exposure_model(id, con, folder, region):
     print "-------"
     print "Creating Exposure Model"
 
@@ -111,7 +111,8 @@ def create_exposure_model(id, con, folder):
                 from eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model \
                 where eng_models_exposure_model.id = eng_models_asset.model_id \
                 and eng_models_exposure_model.id = %s \
-                and eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id', (id,))
+                and eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id \
+                and ST_Within(eng_models_asset.location, %s)', (id, region))
 
     assets = [dict(id = asset[0],
                     lon = asset[1],
@@ -224,9 +225,11 @@ def start(id, connection):
     
     create_fragility_model(id, connection, FOLDER)
 
-    cur.execute('select exposure_model_id from jobs_scenario_damage where id = %s', (id,))
-    exposure_model_id = cur.fetchone()[0]
-    create_exposure_model(exposure_model_id, connection, FOLDER)
+    cur.execute('select exposure_model_id, region from jobs_scenario_damage where id = %s', (id,))
+    data = cur.fetchone()
+    exposure_model_id = data[0]
+    region = data[1]
+    create_exposure_model(exposure_model_id, connection, FOLDER, region)
     
     create_ini_file(id, connection, FOLDER)
     oq_id = run(id, connection, FOLDER)

@@ -163,9 +163,11 @@ def start(id, connection):
     for model in cur.fetchall():
         create_vulnerability_model(model[0], connection, FOLDER)
     
-    cur.execute('select exposure_model_id from jobs_scenario_risk where id = %s', (id,))
-    exposure_model_id = cur.fetchone()[0]
-    create_exposure_model(exposure_model_id, connection, FOLDER)
+    cur.execute('select exposure_model_id, region from jobs_scenario_risk where id = %s', (id,))
+    data = cur.fetchone()
+    exposure_model_id = data[0]
+    region = data[1]
+    create_exposure_model(exposure_model_id, connection, FOLDER, region)
     
     create_ini_file(id, connection, FOLDER)
     oq_id = run(id, connection, FOLDER)
