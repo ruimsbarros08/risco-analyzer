@@ -158,8 +158,8 @@ def start(id, connection):
     except:
         pass
 
-    cur.execute('select vulnerability_model_id from jobs_scenario_risk_vulnerability_models \
-                where scenario_risk_id = %s', [id])
+    cur.execute('select vulnerability_model_id from jobs_scenario_risk_vulnerability_model \
+                where job_id = %s', [id])
     for model in cur.fetchall():
         create_vulnerability_model(model[0], connection, FOLDER)
     
