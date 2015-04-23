@@ -52,13 +52,13 @@
 	    </costs>
 	      <occupancies>
 	      	{%if asset.oc_day %}
-	       		<occupancy occupants= "{{asset.oc_day}}" period="Day" />
+	       		<occupancy occupants= "{{asset.oc_day}}" period="day" />
 	       	{% endif %}
 	      	{%if asset.oc_day %}
-	       		<occupancy occupants= "{{asset.oc_night}}" period="Night" />
+	       		<occupancy occupants= "{{asset.oc_night}}" period="night" />
 	       	{% endif %}
 	      	{%if asset.oc_day %}
-	       		<occupancy occupants= "{{asset.oc_transit}}" period="Transit" />
+	       		<occupancy occupants= "{{asset.oc_transit}}" period="transit" />
 	       	{% endif %}
 	      </occupancies>
 	    </asset>
