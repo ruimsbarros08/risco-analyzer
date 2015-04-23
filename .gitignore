@@ -1,3 +1,4 @@
 *.pyc
 files/riscodb_dev
 files/riscodb
+test.py

@@ -116,10 +116,12 @@ def run(job_id, con, folder):
 
     proc_damage = subprocess.Popen(["/usr/local/openquake/oq-engine/bin/openquake", "--log-file", "/dev/null", "--run-risk", folder+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
     proc_damage.wait()
-    output_proc_damage = proc_damage.stdout.read().split("\n")
+    output_proc_risk = proc_damage.stdout.read().split("\n")
+    print output_proc_risk
 
-    #oq_id = output_proc_damage[0].split(' ')[1]
-    oq_id = output_proc_damage[-1].split(' ')[0]
+    #oq_id = output_proc_risk[0].split(' ')[1]
+    print output_proc_risk[-1].split(' ')
+    oq_id = output_proc_risk[-1].split(' ')[0]
 
     return oq_id
 
