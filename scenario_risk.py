@@ -24,33 +24,45 @@ def create_vulnerability_model(id, con, folder):
 
     model_data = cur.fetchone()
 
-    if model_data[6] == 'SA':
-        imt = 'SA('+str(model_data[7])+')'
-    else:
-        imt = model_data[6]
-
     model = {
             'name': model_data[2],
             'asset_category': model_data[4],
             'loss_category': model_data[5],
-            'imt': imt,
+            #'imt': imt,
             'iml': model_data[8],
             'type': model_data[13]
                 }
 
     cur.execute('select eng_models_vulnerability_function.probabilistic_distribution, eng_models_vulnerability_function.loss_ratio, \
-                eng_models_vulnerability_function.coefficients_variation, eng_models_building_taxonomy.name \
+                eng_models_vulnerability_function.coefficients_variation, eng_models_vulnerability_function.imt, \
+                eng_models_vulnerability_function.sa_period , eng_models_building_taxonomy.name \
                 from eng_models_vulnerability_function, eng_models_building_taxonomy \
                 where eng_models_vulnerability_function.model_id = %s \
                 and eng_models_vulnerability_function.taxonomy_id = eng_models_building_taxonomy.id', (id,))
-    taxonomies = [dict(probabilistic_distribution = f[0],
-                        loss_ratio = f[1],
-                        coefficients_variation = f[2],
-                        taxonomy = f[3]) for f in cur.fetchall()]
+
+    imts = []
+    functions = []
+
+    for function in cur.fetchall():
+        if function[3] == 'SA':
+            imt = 'SA('+str(function[4])+')'
+        else:
+            imt = function[3]
+
+        if imt in imts:
+            pass
+        else:
+            imts.append(imt)
+
+        functions.append(dict(probabilistic_distribution = function[0],
+                        loss_ratio = function[1],
+                        coefficients_variation = function[2],
+                        imt = imt,
+                        taxonomy = function[5]))
 
 
     vul_template = templateEnv.get_template('vulnerability_model.jinja')
-    vul_output = vul_template.render(dict(model= model, taxonomies= taxonomies))
+    vul_output = vul_template.render(dict(model= model, taxonomies= functions, imts = imts))
 
     new_output = []
 
