@@ -118,7 +118,8 @@ def run(job_id, con, folder):
     proc_damage.wait()
     output_proc_damage = proc_damage.stdout.read().split("\n")
 
-    oq_id = output_proc_damage[0].split(' ')[1]
+    #oq_id = output_proc_damage[0].split(' ')[1]
+    oq_id = output_proc_damage[-1].split(' ')[0]
 
     return oq_id
 
