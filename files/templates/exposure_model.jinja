@@ -34,7 +34,7 @@
 	  </conversions>
 	  <assets>
 	  	{% for asset in assets %}
-	   <asset id= "{{asset.name}}" area= "{{asset.area}}"  number= "{{asset.n_buildings}}"  taxonomy= "{{asset.taxonomy}}" >
+	   <asset id= "{{asset.name}}" {% if asset.area %} area="{{asset.area}}" {% endif %} {% if asset.n_buildings %} number="{{asset.n_buildings}}" {% endif %} taxonomy= "{{asset.taxonomy}}" >
 	    <location lon="{{asset.lon}}" lat="{{asset.lat}}" />
 	    <costs>
 			
