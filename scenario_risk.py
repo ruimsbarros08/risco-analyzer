@@ -29,8 +29,8 @@ def create_vulnerability_model(id, con, folder):
             'asset_category': model_data[4],
             'loss_category': model_data[5],
             #'imt': imt,
-            'iml': model_data[8],
-            'type': model_data[13]
+            'iml': model_data[6],
+            'type': model_data[11]
                 }
 
     cur.execute('select eng_models_vulnerability_function.probabilistic_distribution, eng_models_vulnerability_function.loss_ratio, \
