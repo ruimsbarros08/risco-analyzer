@@ -37,17 +37,21 @@
 	   <asset id= "{{asset.name}}" {% if asset.area %} area="{{asset.area}}" {% endif %} {% if asset.n_buildings %} number="{{asset.n_buildings}}" {% endif %} taxonomy= "{{asset.taxonomy}}" >
 	    <location lon="{{asset.lon}}" lat="{{asset.lat}}" />
 	    <costs>
+			{% if asset.struct_cost %}
+	      		<cost type="structural" value= "{{asset.struct_cost}}" {% if asset.struct_deductible %} deductible="{{ asset.struct_deductible }}" {% endif %} {% if asset.struct_insurance_limit %} insuranceLimit="{{ asset.struct_insurance_limit }}" {% endif %} {% if asset.retrofitting_cost %} retrofitted="{{ asset.retrofitting_cost }}" {% endif %} />
+	      	{% endif %}
 			
-	      		<cost type="structural" {% if asset.struct_cost %} value= "{{asset.struct_cost}}" {% else %} value= "0" {% endif %} {% if asset.struct_deductible %} deductible="{{ asset.struct_deductible }}" {% endif %} {% if asset.struct_insurance_limit %} insuranceLimit="{{ asset.struct_insurance_limit }}" {% endif %} {% if asset.retrofitting_cost %} retrofitted="{{ asset.retrofitting_cost }}" {% endif %} />
+			{% if asset.non_struct_cost %}
+	      		<cost type="non_structural" value= "{{asset.non_struct_cost}}" {% if asset.non_struct_deductible %} deductible="{{ asset.non_struct_deductible }}" {% endif %} {% if asset.non_struct_insurance_limit %} insuranceLimit="{{ asset.non_struct_insurance_limit }}" {% endif %}/>
+	      	{% endif %}
 	      	
-			
-	      		<cost type="non_structural" {% if asset.non_struct_cost %} value= "{{asset.non_struct_cost}}" {% else %} value="0" {% endif %} {% if asset.non_struct_deductible %} deductible="{{ asset.non_struct_deductible }}" {% endif %} {% if asset.non_struct_insurance_limit %} insuranceLimit="{{ asset.non_struct_insurance_limit }}" {% endif %}/>
+			{% if asset.contents_cost %}
+	      		<cost type="contents" value= "{{asset.contents_cost}}" {% if asset.contents_deductible %} deductible="{{ asset.contents_deductible }}" {% endif %} {% if asset.contents_insurance_limit %} insuranceLimit="{{ asset.contents_insurance_limit }}" {% endif %}/>
+	      	{% endif %}
 	      	
-			
-	      		<cost type="contents" {% if asset.contents_cost %} value= "{{asset.contents_cost}}" {% else %} value="0" {% endif %} {% if asset.contents_deductible %} deductible="{{ asset.contents_deductible }}" {% endif %} {% if asset.contents_insurance_limit %} insuranceLimit="{{ asset.contents_insurance_limit }}" {% endif %}/>
-	      	
-			
-	      		<cost type="business_interruption" {% if asset.business_int_cost %} value= "{{asset.business_int_cost}}" {% else %} value='0' {% endif %} {% if asset.business_int_deductible %} deductible="{{ asset.business_int_deductible }}" {% endif %} {% if asset.business_int_insurance_limit %} insuranceLimit="{{ asset.business_int_insurance_limit }}" {% endif %}/>
+	      	{% if asset.business_int_cost %}
+	      		<cost type="business_interruption" value= "{{asset.business_int_cost}}" {% if asset.business_int_deductible %} deductible="{{ asset.business_int_deductible }}" {% endif %} {% if asset.business_int_insurance_limit %} insuranceLimit="{{ asset.business_int_insurance_limit }}" {% endif %}/>
+	      	{% endif %}
 	      	
 	    </costs>
 	      <occupancies>
