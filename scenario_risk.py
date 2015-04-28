@@ -129,11 +129,17 @@ def run(job_id, con, folder):
     proc_damage = subprocess.Popen(["/usr/local/openquake/oq-engine/bin/openquake", "--log-file", "/dev/null", "--run-risk", folder+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
     proc_damage.wait()
     output_proc_risk = proc_damage.stdout.read().split("\n")
+    
+    oq_ids = []
+    for e in output_proc_risk:
+        try:
+            a = e.split(' | ')
+            if a[1] == 'Loss Map':
+                oq_ids.append(a[0])
+        except:
+            pass
 
-    #oq_id = output_proc_risk[0].split(' ')[1]
-    oq_id = output_proc_risk[-2].split(' ')[0]
-
-    return oq_id
+    return oq_ids
 
 
 def save(job_id, oq_id, con):
@@ -141,17 +147,31 @@ def save(job_id, oq_id, con):
     print "Storing the results. OQ_id: "+str(oq_id)
     
     cur = con.cursor()
-    cur.execute("INSERT INTO jobs_scenario_risk_results (job_vul_id, asset_id, mean, stddev) \
-                SELECT jobs_scenario_risk_vulnerability_model.id, eng_models_asset.id, \
-                foreign_loss_map_data.value, foreign_loss_map_data.std_dev \
-                FROM foreign_loss_map, foreign_loss_map_data, \
-                jobs_scenario_risk_vulnerability_model, eng_models_vulnerability_model, eng_models_asset \
-                WHERE foreign_loss_map.output_id = %s \
-                AND foreign_loss_map.id = foreign_loss_map_data.loss_map_id \
-                AND eng_models_vulnerability_model.type LIKE foreign_loss_map.loss_type || '%' \
+
+    cur.execute('SELECT loss_type FROM foreign_loss_map WHERE output_id = %s', (oq_id,))
+    loss_type = cur.fetchone()[0]
+
+    print '* '+loss_type
+
+    if loss_type == 'fatalities':
+        loss_type = 'occupants'+'_vulnerability'
+    else:
+        loss_type = loss_type+'_vulnerability'
+
+    cur.execute('SELECT jobs_scenario_risk_vulnerability_model.id \
+                FROM eng_models_vulnerability_model, jobs_scenario_risk_vulnerability_model \
+                WHERE eng_models_vulnerability_model.type = %s \
                 AND eng_models_vulnerability_model.id = jobs_scenario_risk_vulnerability_model.vulnerability_model_id \
-                AND jobs_scenario_risk_vulnerability_model.job_id = %s \
-                AND eng_models_asset.name = foreign_loss_map_data.asset_ref", (oq_id, job_id))
+                AND jobs_scenario_risk_vulnerability_model.job_id = %s', (loss_type, job_id))
+    job_vul_id = cur.fetchone()[0]
+
+    cur.execute("INSERT INTO jobs_scenario_risk_results (job_vul_id, asset_id, mean, stddev) \
+                SELECT %s, eng_models_asset.id, \
+                foreign_loss_map_data.value, foreign_loss_map_data.std_dev \
+                FROM foreign_loss_map, foreign_loss_map_data, eng_models_asset \
+                WHERE foreign_loss_map_data.loss_map_id = foreign_loss_map.id\
+                AND eng_models_asset.name = foreign_loss_map_data.asset_ref \
+                AND foreign_loss_map.output_id = %s", (job_vul_id, oq_id))
     con.commit()
 
 
@@ -183,8 +203,10 @@ def start(id, connection):
     create_exposure_model(exposure_model_id, connection, FOLDER, region)
     
     create_ini_file(id, connection, FOLDER)
-    oq_id = run(id, connection, FOLDER)
-    save(id, oq_id, connection)
+    oq_ids = run(id, connection, FOLDER)
+
+    for oq_id in oq_ids:
+        save(id, oq_id, connection)
 
     cur.execute("update jobs_scenario_risk set status = 'FINISHED' where id = %s", (id,))
     connection.commit()

@@ -117,8 +117,36 @@ def save(job_id, oq_id, con):
             WHERE foreign_hazard_site.id = foreign_gmf_data.site_id \
             AND foreign_gmf_data.gmf_id = foreign_gmf.id \
             AND foreign_gmf.output_id = %s \
-            AND ST_Intersects(foreign_hazard_site.location::geometry, world_fishnet.cell)", (job_id, oq_id))
+            AND ST_Intersects(foreign_hazard_site.location::geometry, world_fishnet.cell) ", (job_id, oq_id))
+
     con.commit()
+
+
+def aggregate(job_id, pga, sa_periods, con):
+    print "-------"
+    print "Making Aggregations"
+
+    cursor = con.cursor()
+
+    if pga:
+        cursor.execute("INSERT INTO jobs_scenario_hazard_results_by_cell (imt, sa_period, gmvs_mean, cell_id, job_id) \
+                        SELECT 'PGA', NULL, AVG(gmvs), world_fishnet.id, %s  \
+                        FROM world_fishnet, jobs_scenario_hazard_results \
+                        WHERE jobs_scenario_hazard_results.job_id = %s \
+                        AND jobs_scenario_hazard_results.cell_id = world_fishnet.id \
+                        AND jobs_scenario_hazard_results.imt = 'PGA' \
+                        GROUP BY world_fishnet.id", [job_id, job_id])
+        con.commit()
+
+    for e in sa_periods:
+        cursor.execute("INSERT INTO jobs_scenario_hazard_results_by_cell (imt, sa_period, gmvs_mean, cell_id, job_id) \
+                        SELECT 'SA', %s, AVG(gmvs), world_fishnet.id, %s  \
+                        FROM world_fishnet, jobs_scenario_hazard_results \
+                        WHERE jobs_scenario_hazard_results.job_id = %s \
+                        AND jobs_scenario_hazard_results.cell_id = world_fishnet.id \
+                        AND jobs_scenario_hazard_results.imt = 'PGA' \
+                        GROUP BY world_fishnet.id", [e, job_id, job_id])
+        con.commit()
 
 
 def start(id, connection):
@@ -134,6 +162,10 @@ def start(id, connection):
     data = cur.fetchone()
 
     imt_list = []
+    
+    pga = data[10]
+    sa_periods = data[11]
+
     if data[10]:
         imt_list.append('PGA')
     
@@ -177,6 +209,8 @@ def start(id, connection):
     create_ini_file(id, params, FOLDER)
     oq_id = run(id, connection, FOLDER)
     save(id, oq_id, connection)
+
+    aggregate(id, pga, sa_periods, connection)
 
     cur.execute("update jobs_scenario_hazard set status = 'FINISHED' where id = %s", (id,))
     connection.commit()
