@@ -1,8 +1,9 @@
 
 import controller
 import scenario_risk
+import scenario_hazard
 
-job_id = 6
+job_id = 8
 job_type = 'scenario_risk'
 database = {'HOST': 'priseDB.fe.up.pt', 'NAME': 'riscodb_dev', 'USER': 'postgres', 'PASSWORD': 'prisefeup'}
 
@@ -32,8 +33,23 @@ def parse_risk_output(data):
 
 #print parse_risk_output(data)
 
+
+def test_save_scenario_hazard(job_id, oq_id, con):
+	scenario_hazard.save(job_id, oq_id, con)
+
+#oq_id = 1830
+#test_save_scenario_hazard(job_id, oq_id, con)
+
 def test_save_scenario_risk(id_list, job_id, con):
     for oq_id in id_list:
 		scenario_risk.save(job_id, oq_id, con)
 
-test_save_scenario_risk(['1843', '1844', '1845'], job_id, con)
+#test_save_scenario_risk(['1843', '1844', '1845'], job_id, con)
+
+pga = True
+sa_periods = []
+
+def test_hazard_aggragation(job_id, pga, sa_periods, con):
+	scenario_hazard.aggregate(job_id, pga, sa_periods, con)
+
+test_hazard_aggragation(job_id, pga, sa_periods, con)
