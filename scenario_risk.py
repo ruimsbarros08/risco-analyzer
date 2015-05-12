@@ -158,12 +158,14 @@ def save(job_id, oq_id, con):
     else:
         loss_type = loss_type+'_vulnerability'
 
-    cur.execute('SELECT jobs_scenario_risk_vulnerability_model.id \
-                FROM eng_models_vulnerability_model, jobs_scenario_risk_vulnerability_model \
+    cur.execute('SELECT jobs_scenario_risk_vulnerability_model.id, jobs_scenario_risk.exposure_model_id \
+                FROM eng_models_vulnerability_model, jobs_scenario_risk_vulnerability_model, jobs_scenario_risk \
                 WHERE eng_models_vulnerability_model.type = %s \
                 AND eng_models_vulnerability_model.id = jobs_scenario_risk_vulnerability_model.vulnerability_model_id \
                 AND jobs_scenario_risk_vulnerability_model.job_id = %s', (loss_type, job_id))
-    job_vul_id = cur.fetchone()[0]
+    data = cur.fetchone()
+    job_vul_id = data[0]
+    exposure_model_id = data[1]
 
     cur.execute("INSERT INTO jobs_scenario_risk_results (job_vul_id, asset_id, mean, stddev) \
                 SELECT %s, eng_models_asset.id, \
@@ -171,7 +173,8 @@ def save(job_id, oq_id, con):
                 FROM foreign_loss_map, foreign_loss_map_data, eng_models_asset \
                 WHERE foreign_loss_map_data.loss_map_id = foreign_loss_map.id\
                 AND eng_models_asset.name = foreign_loss_map_data.asset_ref \
-                AND foreign_loss_map.output_id = %s", (job_vul_id, oq_id))
+                AND eng_models_asset.model_id = %s \
+                AND foreign_loss_map.output_id = %s", (job_vul_id, exposure_model_id, oq_id))
     con.commit()
 
 
