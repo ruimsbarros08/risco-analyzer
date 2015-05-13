@@ -142,21 +142,18 @@ def run(job_id, con, folder):
     return oq_ids
 
 
-def save(job_id, oq_id, con):
+def save(job_id, type, con):
     print "-------"
-    print "Storing the results. OQ_id: "+str(oq_id)
+    print "Storing the results. OQ_id: "+str(type['oq_id'])
     
     cur = con.cursor()
 
-    cur.execute('SELECT loss_type FROM foreign_loss_map WHERE output_id = %s', (oq_id,))
-    loss_type = cur.fetchone()[0]
+    print '* '+type['type']
 
-    print '* '+loss_type
-
-    if loss_type == 'fatalities':
+    if type['type'] == 'fatalities':
         loss_type = 'occupants'+'_vulnerability'
     else:
-        loss_type = loss_type+'_vulnerability'
+        loss_type = type['type']+'_vulnerability'
 
     cur.execute('SELECT jobs_scenario_risk_vulnerability_model.id, jobs_scenario_risk.exposure_model_id \
                 FROM eng_models_vulnerability_model, jobs_scenario_risk_vulnerability_model, jobs_scenario_risk \
@@ -167,14 +164,31 @@ def save(job_id, oq_id, con):
     job_vul_id = data[0]
     exposure_model_id = data[1]
 
-    cur.execute("INSERT INTO jobs_scenario_risk_results (job_vul_id, asset_id, mean, stddev) \
-                SELECT %s, eng_models_asset.id, \
-                foreign_loss_map_data.value, foreign_loss_map_data.std_dev \
-                FROM foreign_loss_map, foreign_loss_map_data, eng_models_asset \
-                WHERE foreign_loss_map_data.loss_map_id = foreign_loss_map.id\
-                AND eng_models_asset.name = foreign_loss_map_data.asset_ref \
-                AND eng_models_asset.model_id = %s \
-                AND foreign_loss_map.output_id = %s", (job_vul_id, exposure_model_id, oq_id))
+    if 'insured_oq_id' in type:
+        cur.execute("INSERT INTO jobs_scenario_risk_results (job_vul_id, asset_id, mean, stddev, insured_mean, insured_stddev) \
+                    SELECT %s, eng_models_asset.id, total.value, total.std_dev, insured.value, insured.std_dev \
+                    FROM (SELECT asset_ref, value, std_dev \
+                        FROM foreign_loss_map, foreign_loss_map_data \
+                        WHERE foreign_loss_map.output_id = %s \
+                        AND foreign_loss_map_data.loss_map_id = foreign_loss_map.id) AS total, \
+                        (SELECT asset_ref, value, std_dev \
+                        FROM foreign_loss_map, foreign_loss_map_data \
+                        WHERE foreign_loss_map.output_id = %s \
+                        AND foreign_loss_map_data.loss_map_id = foreign_loss_map.id) AS insured, \
+                        eng_models_asset \
+                    WHERE eng_models_asset.name = total.asset_ref \
+                    AND eng_models_asset.name = insured.asset_ref \
+                    AND eng_models_asset.model_id = %s", (job_vul_id, type['oq_id'], type['insured_oq_id'], exposure_model_id))
+    
+    else:
+        cur.execute("INSERT INTO jobs_scenario_risk_results (job_vul_id, asset_id, mean, stddev) \
+                    SELECT %s, eng_models_asset.id, \
+                    foreign_loss_map_data.value, foreign_loss_map_data.std_dev \
+                    FROM foreign_loss_map, foreign_loss_map_data, eng_models_asset \
+                    WHERE foreign_loss_map_data.loss_map_id = foreign_loss_map.id\
+                    AND eng_models_asset.name = foreign_loss_map_data.asset_ref \
+                    AND eng_models_asset.model_id = %s \
+                    AND foreign_loss_map.output_id = %s", (job_vul_id, exposure_model_id, type['oq_id']))
     con.commit()
 
 
@@ -208,8 +222,31 @@ def start(id, connection):
     create_ini_file(id, connection, FOLDER)
     oq_ids = run(id, connection, FOLDER)
 
+    loss_types = []
     for oq_id in oq_ids:
-        save(id, oq_id, connection)
+        cur.execute('SELECT loss_type, insured FROM foreign_loss_map WHERE output_id = %s', (oq_id,))
+        data = cur.fetchone()
+        loss_type = data[0]
+        insured = data[1]
+        for e in loss_types:
+            if loss_type == e['type']:
+                if insured:
+                    e['insured_oq_id'] = oq_id
+                else:
+                    e['oq_id'] = oq_id
+                exist = True
+                break
+            else:
+                exist = False
+            
+        if not exist:
+            if insured:
+                loss_types.append({'type': loss_type, 'insured_oq_id': oq_id})
+            else:
+                loss_types.append({'type': loss_type, 'oq_id': oq_id})
+
+    for type in loss_types:
+        save(id, type, connection)
 
     cur.execute("update jobs_scenario_risk set status = 'FINISHED' where id = %s", (id,))
     connection.commit()
