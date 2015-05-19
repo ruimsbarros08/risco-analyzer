@@ -129,6 +129,7 @@ def aggregate(job_id, pga, sa_periods, con):
     cursor = con.cursor()
 
     if pga:
+        print '* PGA'
         cursor.execute("INSERT INTO jobs_scenario_hazard_results_by_cell (imt, sa_period, gmvs_mean, cell_id, job_id) \
                         SELECT 'PGA', NULL, AVG(gmvs), world_fishnet.id, %s  \
                         FROM world_fishnet, jobs_scenario_hazard_results \
@@ -139,12 +140,13 @@ def aggregate(job_id, pga, sa_periods, con):
         con.commit()
 
     for e in sa_periods:
+        print '*', e
         cursor.execute("INSERT INTO jobs_scenario_hazard_results_by_cell (imt, sa_period, gmvs_mean, cell_id, job_id) \
                         SELECT 'SA', %s, AVG(gmvs), world_fishnet.id, %s  \
                         FROM world_fishnet, jobs_scenario_hazard_results \
                         WHERE jobs_scenario_hazard_results.job_id = %s \
                         AND jobs_scenario_hazard_results.cell_id = world_fishnet.id \
-                        AND jobs_scenario_hazard_results.imt = 'PGA' \
+                        AND jobs_scenario_hazard_results.imt = 'SA' \
                         GROUP BY world_fishnet.id", [e, job_id, job_id])
         con.commit()
 
