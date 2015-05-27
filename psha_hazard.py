@@ -60,6 +60,63 @@ def create_logic_tree(id, type, con, folder):
         file.close()
 
 
+
+def create_logic_tree_v1(id, type, con, folder):
+    print "-------"
+    print "Creating Logic Tree: "+type
+
+
+    cur = con.cursor()
+    cur.execute('SELECT id, level FROM eng_models_logic_tree_level WHERE logic_tree_id = %s ', (id,))
+    levels = [ {'id': e[0], 'level': e[1]} for e in cur.fetchall()]
+
+    for level in levels:
+        cur.execute('SELECT id, uncertainty_type, level_id \
+                    FROM eng_models_logic_tree_branch_set \
+                    WHERE level_id = %s', (level['id'],))
+
+        data = cur.fetchall()
+        branch_set_id = data[0][0]
+        uncertainty_type = data[0][1]
+
+        sources = []
+        for branch_set in data:
+            cur.execute('SELECT source_id \
+                        FROM eng_models_logic_tree_branch_set_sources \
+                        WHERE logic_tree_branch_set_id = %s', (branch_set[0],))
+            for s in cur.fetchall():
+                sources.append(s[0])
+
+        sources = list(set(sources))
+
+        level['branch_set'] = {'id': branch_set_id, 'uncertainty_type': uncertainty_type, 'sources': sources}
+
+        
+        cur.execute('SELECT id, weight, a_b, b_inc, gmpe, max_mag, max_mag_inc, source_model_id \
+                FROM eng_models_logic_tree_branch \
+                WHERE branch_set_id = %s ', ( level['branch_set']['id'] ,))
+
+        branches = [ {'id': b[0],
+                        'weight': b[1],
+                        'a_b': b[2],
+                        'b_inc': b[3],
+                        'gmpe': b[4],
+                        'max_mag': b[5],
+                        'max_mag_inc': b[6],
+                        'source_model_id': b[7]} for b in cur.fetchall() ]
+
+        level['branch_set']['branches'] = branches
+
+
+    logic_tree_template = templateEnv.get_template('logic_tree_v1.jinja')
+    logic_tree_output = logic_tree_template.render({'levels': levels})
+
+    with open(folder+"/"+type+"_logic_tree.xml", "wb") as file:
+        file.write(logic_tree_output)
+        file.close()
+
+
+
 def create_source_model(id, con, folder):
     print "-------"
     print "Creating Source Model"
@@ -280,7 +337,7 @@ def start(id, connection):
                 AND eng_models_logic_tree.id = jobs_classical_psha_hazard_logic_trees.logic_tree_id', (id,))
 
     for tree in cur.fetchall():
-        create_logic_tree(tree[0], tree[1], connection, FOLDER)
+        create_logic_tree_v1(tree[0], tree[1], connection, FOLDER)
 
         if tree[1] == 'source':
 
@@ -292,10 +349,10 @@ def start(id, connection):
                 create_source_model(source[0], connection, FOLDER)
 
 
-    create_ini_file(params, FOLDER)
-    oq_curves_ids, oq_map_ids = run(id, connection, FOLDER)
-    save(id, oq_curves_ids, oq_map_ids, connection)
+    #create_ini_file(params, FOLDER)
+    #oq_curves_ids, oq_map_ids = run(id, connection, FOLDER)
+    #save(id, oq_curves_ids, oq_map_ids, connection)
 
 
-    cur.execute("update jobs_classical_psha_hazard set status = 'FINISHED' where id = %s", (id,))
-    connection.commit()
+    #cur.execute("update jobs_classical_psha_hazard set status = 'FINISHED' where id = %s", (id,))
+    #connection.commit()

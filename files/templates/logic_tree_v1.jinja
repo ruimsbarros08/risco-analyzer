@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<nrml xmlns:gml="http://www.opengis.net/gml" xmlns="http://openquake.org/xmlns/nrml/0.4">
+    <logicTree logicTreeID="lt">
+        {% for level in levels %}
+            <logicTreeBranchingLevel branchingLevelID="l{{ level.id }}">
+
+                <logicTreeBranchSet uncertaintyType="{{ level.branch_set.uncertainty_type }}"
+                                    branchSetID="s{{ level.branch_set.id }}"
+                                    {% if level['branch_set']['sources'] != [] %}
+                                    applyToSources="{% for source in level['branch_set']['sources'] %} s{{ source }} {% endfor %}"
+                                    {% endif %} >
+                    
+                    {% for branch in level['branch_set']['branches'] %}
+                    <logicTreeBranch branchID="b{{ branch.id }}">
+                        {% if level['branch_set']['uncertainty_type'] == 'gmpeModel' %}
+                        <uncertaintyModel>{{ branch.gmpe }}</uncertaintyModel>
+                        {% endif %}
+                        {% if level['branch_set']['uncertainty_type'] == 'sourceModel' %}
+                        <uncertaintyModel>source_model_{{ branch.source_model_id }}.xml</uncertaintyModel>
+                        {% endif %}
+                        {% if level['branch_set']['uncertainty_type'] == 'maxMagGRRelative' %}
+                        <uncertaintyModel>{{ branch.max_mag_inc }}</uncertaintyModel>
+                        {% endif %}
+                        {% if level['branch_set']['uncertainty_type'] == 'bGRRelative' %}
+                        <uncertaintyModel>{{ branch.b_inc }}</uncertaintyModel>
+                        {% endif %}
+                        {% if level['branch_set']['uncertainty_type'] == 'abGRAbsolute' %}
+                        <uncertaintyModel>{{ branch.a_b[0] }} {{ branch.a_b[1] }}</uncertaintyModel>
+                        {% endif %}
+                        {% if level['branch_set']['uncertainty_type'] == 'maxMagGRAbsolute' %}
+                        <uncertaintyModel>{{ branch.max_mag }}</uncertaintyModel>
+                        {% endif %}
+
+                        <uncertaintyWeight>{{ branch.weight }}</uncertaintyWeight>
+                    </logicTreeBranch>
+                    {% endfor %}
+
+                </logicTreeBranchSet>
+
+            </logicTreeBranchingLevel>
+        {% endfor %}
+     </logicTree>
+</nrml>
