@@ -349,10 +349,10 @@ def start(id, connection):
                 create_source_model(source[0], connection, FOLDER)
 
 
-    #create_ini_file(params, FOLDER)
-    #oq_curves_ids, oq_map_ids = run(id, connection, FOLDER)
-    #save(id, oq_curves_ids, oq_map_ids, connection)
+    create_ini_file(params, FOLDER)
+    oq_curves_ids, oq_map_ids = run(id, connection, FOLDER)
+    save(id, oq_curves_ids, oq_map_ids, connection)
 
 
-    #cur.execute("update jobs_classical_psha_hazard set status = 'FINISHED' where id = %s", (id,))
-    #connection.commit()
+    cur.execute("update jobs_classical_psha_hazard set status = 'FINISHED' where id = %s", (id,))
+    connection.commit()
