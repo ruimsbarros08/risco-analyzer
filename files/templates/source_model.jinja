@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='utf-8'?>
+<nrml xmlns:gml="http://www.opengis.net/gml"
+      xmlns="http://openquake.org/xmlns/nrml/0.4">
+
+    <sourceModel name="{{ model_id }}">
+    {% for source in sources %}
+
+        {% if source.source_type == 'AREA' %}
+        <areaSource id="{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
+            <areaGeometry>
+                <gml:Polygon>
+                    <gml:exterior>
+                        <gml:LinearRing>
+                            <gml:posList>
+                                {{ source.geom }}
+                            </gml:posList>
+                        </gml:LinearRing>
+                    </gml:exterior>
+                </gml:Polygon>
+                <upperSeismoDepth> {{ source.upper_depth }} </upperSeismoDepth>
+                <lowerSeismoDepth> {{ source.lower_depth }} </lowerSeismoDepth>
+            </areaGeometry>
+            <magScaleRel>{{ source.mag_scale_rel }}</magScaleRel>
+            <ruptAspectRatio>{{ source.rupt_aspect_ratio }}</ruptAspectRatio>
+            
+            {% if source.mag_freq_dist_type == 'TRUNC' %}
+            <truncGutenbergRichterMFD aValue="{{ source.a }}" bValue="{{ source.b }}" minMag="{{ source.min_mag }}" maxMag="{{ source.max_mag }}" />
+            
+            {% elif source.mag_freq_dist_type == 'INC' %}
+
+            <incrementalMFD minMag="{{ source.min_mag }}" binWidth="{{ source.bin_width }}">
+                
+                <occurRates> {% for rate in source.occur_rates %} {{ rate }} {% endfor %} </occurRates>
+            
+            </incrementalMFD>
+
+            {% endif %}
+
+            <nodalPlaneDist>
+                {% for nodal_plane in source.nodal_plane_dist %}
+                <nodalPlane probability="{{ nodal_plane[0] }}" strike="{{ nodal_plane[1] }}" dip="{{ nodal_plane[2] }}" rake="{{ nodal_plane[3] }}" />
+                {% endfor %}
+            </nodalPlaneDist>
+            <hypoDepthDist>
+                {% for hypo_depth in source.hypo_depth_dist %}
+                <hypoDepth probability="{{ hypo_depth[0] }}" depth="{{ hypo_depth[1] }}" />
+                {% endfor %}
+            </hypoDepthDist>
+        </areaSource>
+
+        {% elif source.source_type == 'SIMPLE_FAULT' %}
+        <simpleFaultSource id="{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
+            <simpleFaultGeometry>
+                <gml:LineString>
+                    <gml:posList>
+                        {{ source.geom }}
+                    </gml:posList>
+                </gml:LineString>
+                <dip>{{ source.dip }}</dip>
+                <upperSeismoDepth>{{ source.upper_depth }}</upperSeismoDepth>
+                <lowerSeismoDepth>{{ source.lower_depth }}</lowerSeismoDepth>
+            </simpleFaultGeometry>
+            <magScaleRel>{{ source.mag_scale_rel }}</magScaleRel>
+            <ruptAspectRatio>{{ source.rupt_aspect_ratio }}</ruptAspectRatio>
+            
+            {% if source.mag_freq_dist_type == 'TRUNC' %}
+            <truncGutenbergRichterMFD aValue="{{ source.a }}" bValue="{{ source.b }}" minMag="{{ source.min_mag }}" maxMag="{{ source.max_mag }}" />
+            
+            {% elif source.mag_freq_dist_type == 'INC' %}
+
+            <incrementalMFD minMag="{{ source.min_mag }}" binWidth="{{ source.bin_width }}">
+                
+                <occurRates> {% for rate in source.occur_rates %} {{ rate }} {% endfor %} </occurRates>
+            
+            </incrementalMFD>
+
+            {% endif %}
+
+            <rake>{{ source.rake }}</rake>
+        </simpleFaultSource>
+
+        {% elif source.source_type == 'POINT' %}
+        <pointSource id="{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
+            <pointGeometry>
+                <gml:Point>
+                    <gml:pos>{{ source.geom }}</gml:pos>
+                </gml:Point>
+                <upperSeismoDepth>{{ source.upper_depth }}</upperSeismoDepth>
+                <lowerSeismoDepth>{{ source.lower_depth }}</lowerSeismoDepth>
+            </pointGeometry>
+            <magScaleRel>{{ source.mag_scale_rel }}</magScaleRel>
+            <ruptAspectRatio>{{ source.rupt_aspect_ratio }}</ruptAspectRatio>
+
+            {% if source.mag_freq_dist_type == 'TRUNC' %}
+            <truncGutenbergRichterMFD aValue="{{ source.a }}" bValue="{{ source.b }}" minMag="{{ source.min_mag }}" maxMag="{{ source.max_mag }}" />
+            
+            {% elif source.mag_freq_dist_type == 'INC' %}
+
+            <incrementalMFD minMag="{{ source.min_mag }}" binWidth="{{ source.bin_width }}">
+                
+                <occurRates> {% for rate in source.occur_rates %} {{ rate }} {% endfor %} </occurRates>
+            
+            </incrementalMFD>
+
+            {% endif %}
+
+            <nodalPlaneDist>
+                {% for nodal_plane in source.nodal_plane_dist %}
+                <nodalPlane probability="{{ nodal_plane[0] }}" strike="{{ nodal_plane[1] }}" dip="{{ nodal_plane[2] }}" rake="{{ nodal_plane[3] }}" />
+                {% endfor %}
+            </nodalPlaneDist>
+            <hypoDepthDist>
+                {% for hypo_depth in source.hypo_depth_dist %}
+                <hypoDepth probability="{{ hypo_depth[0] }}" depth="{{ hypo_depth[1] }}" />
+                {% endfor %}
+            </hypoDepthDist>
+        </pointSource>
+        {% endif %}
+
+    {% endfor %}
+    </sourceModel>
+</nrml>

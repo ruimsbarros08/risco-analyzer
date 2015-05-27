@@ -11,7 +11,7 @@ templateLoader = jinja2.FileSystemLoader(PATH + 'templates/')
 templateEnv = jinja2.Environment(loader=templateLoader)
 
 
-def create_site_model(job_id, con, folder):
+def create_site_model(id, con, folder):
     print "-------"
     print "Creating Site Model"
 
@@ -19,8 +19,7 @@ def create_site_model(job_id, con, folder):
     cur.execute('select st_x(eng_models_site.location), st_y(eng_models_site.location), \
                 eng_models_site.vs30, eng_models_site.vs30type, eng_models_site.z1pt0, eng_models_site.z2pt5 \
                 from eng_models_site, jobs_scenario_hazard \
-                where eng_models_site.model_id = jobs_scenario_hazard.site_model_id \
-                and jobs_scenario_hazard.id = %s', (job_id,))
+                where eng_models_site.model_id = %s', (id,))
 
     sites = [dict(lon = site[0],
                     lat = site[1],
@@ -158,7 +157,7 @@ def start(id, connection):
     cur = connection.cursor()
     cur.execute('select name, st_astext(region), grid_spacing, sites_type, vs30, vs30type, z1pt0, z2pt5, \
                 random_seed, rupture_mesh_spacing, pga, sa_periods, \
-                truncation_level, max_distance, gmpe, correlation_model, vs30_clustering, n_gmf \
+                truncation_level, max_distance, gmpe, correlation_model, vs30_clustering, n_gmf, site_model_id \
                 from jobs_scenario_hazard \
                 where id = %s', (id,))
     data = cur.fetchone()
@@ -205,7 +204,7 @@ def start(id, connection):
         pass
 
     if params['sites_type'] == 'VARIABLE_CONDITIONS':
-        create_site_model(id, connection, FOLDER)
+        create_site_model(data[18], connection, FOLDER)
     
     create_rupture_model(id, connection, FOLDER)
     create_ini_file(id, params, FOLDER)
