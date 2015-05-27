@@ -6,7 +6,7 @@
     {% for source in sources %}
 
         {% if source.source_type == 'AREA' %}
-        <areaSource id="{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
+        <areaSource id="s{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
             <areaGeometry>
                 <gml:Polygon>
                     <gml:exterior>
@@ -49,7 +49,7 @@
         </areaSource>
 
         {% elif source.source_type == 'SIMPLE_FAULT' %}
-        <simpleFaultSource id="{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
+        <simpleFaultSource id="s{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
             <simpleFaultGeometry>
                 <gml:LineString>
                     <gml:posList>
@@ -80,7 +80,7 @@
         </simpleFaultSource>
 
         {% elif source.source_type == 'POINT' %}
-        <pointSource id="{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
+        <pointSource id="s{{ source.id }}" name="{{ source.name }}" tectonicRegion="{{ source.tectonic_region }}">
             <pointGeometry>
                 <gml:Point>
                     <gml:pos>{{ source.geom }}</gml:pos>

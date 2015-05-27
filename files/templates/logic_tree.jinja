@@ -4,7 +4,7 @@
         {% for level in levels %}
             <logicTreeBranchingLevel branchingLevelID="l{{ level.id }}">
             {% for branch_set in level.branch_sets %}
-                <logicTreeBranchSet uncertaintyType="{{ branch_set.uncertainty_type }}" branchSetID="s{{ branch_set.id }}" {% if branch_set.sources != [] %} applyToSources="{% for source in branch_set.sources %} {{ source }} {% endfor %}"{% endif %} {% if branch_set.origin %} applyToBranches='{{ branch_set.origin }}' {% endif %}>
+                <logicTreeBranchSet uncertaintyType="{{ branch_set.uncertainty_type }}" branchSetID="s{{ branch_set.id }}" {% if branch_set.sources != [] %} applyToSources="{% for source in branch_set.sources %} s{{ source }} {% endfor %}"{% endif %} {% if branch_set.origin %} applyToBranches='b{{ branch_set.origin }}' {% endif %}>
                     {% for branch in branch_set.branches %}
                     <logicTreeBranch branchID="b{{ branch.id }}">
                         {% if branch_set.uncertainty_type == 'gmpeModel' %}
