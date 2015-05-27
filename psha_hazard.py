@@ -80,9 +80,9 @@ def create_source_model(id, con, folder):
         if source_type == 'POINT':
             geom = source[17].split('(')[2].split(')')[0]
         if source_type == 'SIMPLE_FAULT':
-            geom = source[18].split('(')[1].split(')')[0]
+            geom = source[18].split('(')[1].split(')')[0].split(',')
         if source_type == 'AREA':
-            geom = source[19].split('(')[2].split(')')[0]
+            geom = source[19].split('(')[2].split(')')[0].split(',')
 
         sources.append( {'id': source[0],
                         'name': source[1],

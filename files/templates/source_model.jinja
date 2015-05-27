@@ -12,7 +12,9 @@
                     <gml:exterior>
                         <gml:LinearRing>
                             <gml:posList>
-                                {{ source.geom }}
+                                {% for point in source.geom %}
+                                    {{ point }}
+                                {% endfor %}
                             </gml:posList>
                         </gml:LinearRing>
                     </gml:exterior>
@@ -53,7 +55,9 @@
             <simpleFaultGeometry>
                 <gml:LineString>
                     <gml:posList>
-                        {{ source.geom }}
+                        {% for point in source.geom %}
+                            {{ point }}
+                        {% endfor %}
                     </gml:posList>
                 </gml:LineString>
                 <dip>{{ source.dip }}</dip>
