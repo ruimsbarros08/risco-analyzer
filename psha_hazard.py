@@ -14,7 +14,11 @@ templateEnv = jinja2.Environment(loader=templateLoader)
 
 
 
-def create_logic_tree(id, type, con, folder):
+def create_logic_tree_v0(id, type, con, folder):
+    """
+        This function is deprecated for now but can be useful in future versions of oq.
+        It always asigns a branch set to a branch in a previous level. 
+    """
     print "-------"
     print "Creating Logic Tree: "+type
 
@@ -61,57 +65,82 @@ def create_logic_tree(id, type, con, folder):
 
 
 
-def create_logic_tree_v1(id, type, con, folder):
+
+def create_logic_tree_sm(id, con, folder):
     print "-------"
-    print "Creating Logic Tree: "+type
+    print "Creating Source Models Logic Tree"
 
 
     cur = con.cursor()
-    cur.execute('SELECT id, level FROM eng_models_logic_tree_level WHERE logic_tree_id = %s ', (id,))
+    cur.execute('SELECT id, level FROM eng_models_logic_tree_sm_level WHERE logic_tree_id = %s ', (id,))
     levels = [ {'id': e[0], 'level': e[1]} for e in cur.fetchall()]
 
     for level in levels:
-        cur.execute('SELECT id, uncertainty_type, level_id \
-                    FROM eng_models_logic_tree_branch_set \
-                    WHERE level_id = %s', (level['id'],))
+        cur.execute('SELECT id, uncertainty_type, filter \
+                    FROM eng_models_logic_tree_sm_branch_set \
+                    WHERE level_id = %s ', (level['id'],))
+        branch_sets = [{'id': e[0], 'uncertainty_type': e[1], 'filter': e[2]} for e in cur.fetchall()]
 
-        data = cur.fetchall()
-        branch_set_id = data[0][0]
-        uncertainty_type = data[0][1]
+        level['branch_sets'] = branch_sets
 
-        sources = []
-        for branch_set in data:
-            cur.execute('SELECT source_id \
-                        FROM eng_models_logic_tree_branch_set_sources \
-                        WHERE logic_tree_branch_set_id = %s', (branch_set[0],))
-            for s in cur.fetchall():
-                sources.append(s[0])
+        for branch_set in level['branch_sets']:
 
-        sources = list(set(sources))
+            if branch_set['filter'] == 'source':
+                cur.execute('SELECT source_id \
+                            FROM eng_models_logic_tree_sm_branch_set_sources \
+                            WHERE logic_tree_sm_branch_set_id = %s', (branch_set['id'],))
+                branch_set['sources'] = [ e[0] for e in cur.fetchall() ]
 
-        level['branch_set'] = {'id': branch_set_id, 'uncertainty_type': uncertainty_type, 'sources': sources}
+            if branch_set['filter'] == 'branch':
+                cur.execute('SELECT logic_tree_sm_branch_id \
+                            FROM eng_models_logic_tree_sm_branch_set_origins \
+                            WHERE logic_tree_sm_branch_set_id = %s', (branch_set['id'],))
+                branch_set['origins'] = [ e[0] for e in cur.fetchall() ]
+            
+            cur.execute('SELECT id, weight, a_b, b_inc, max_mag, max_mag_inc, source_model_id \
+                        FROM eng_models_logic_tree_sm_branch \
+                        WHERE branch_set_id = %s ', (branch_set['id'],))
 
-        
-        cur.execute('SELECT id, weight, a_b, b_inc, gmpe, max_mag, max_mag_inc, source_model_id \
-                FROM eng_models_logic_tree_branch \
-                WHERE branch_set_id = %s ', ( level['branch_set']['id'] ,))
+            branches = [ {'id': b[0],
+                            'weight': b[1],
+                            'a_b': b[2],
+                            'b_inc': b[3],
+                            'max_mag': b[4],
+                            'max_mag_inc': b[5],
+                            'source_model_id': b[6]} for b in cur.fetchall() ]
 
-        branches = [ {'id': b[0],
-                        'weight': b[1],
-                        'a_b': b[2],
-                        'b_inc': b[3],
-                        'gmpe': b[4],
-                        'max_mag': b[5],
-                        'max_mag_inc': b[6],
-                        'source_model_id': b[7]} for b in cur.fetchall() ]
-
-        level['branch_set']['branches'] = branches
+            branch_set['branches'] = branches
 
 
-    logic_tree_template = templateEnv.get_template('logic_tree_v1.jinja')
+    logic_tree_template = templateEnv.get_template('logic_tree_sm.jinja')
     logic_tree_output = logic_tree_template.render({'levels': levels})
 
-    with open(folder+"/"+type+"_logic_tree.xml", "wb") as file:
+    with open(folder+"/sm_logic_tree.xml", "wb") as file:
+        file.write(logic_tree_output)
+        file.close()
+
+
+
+def create_logic_tree_gmpe(id, con, folder):
+    print "-------"
+    print "Creating GMPE Logic Tree"
+
+    cur = con.cursor()
+    cur.execute('SELECT id, level, tectonic_region FROM eng_models_logic_tree_gmpe_level WHERE logic_tree_id = %s ', (id,))
+    levels = [ {'id': e[0], 'level': e[1], 'tectonic_region': e[2]} for e in cur.fetchall()]
+
+    for level in levels:
+        cur.execute('SELECT id, gmpe, weight \
+                    FROM eng_models_logic_tree_gmpe_branch \
+                    WHERE level_id = %s ', (level['id'],))
+        branches = [{'id': e[0], 'gmpe': e[1], 'weight': e[2]} for e in cur.fetchall()]
+
+        level['branches'] = branches
+
+    logic_tree_template = templateEnv.get_template('logic_tree_gmpe.jinja')
+    logic_tree_output = logic_tree_template.render({'levels': levels})
+
+    with open(folder+"/gmpe_logic_tree.xml", "wb") as file:
         file.write(logic_tree_output)
         file.close()
 
@@ -189,7 +218,7 @@ def run(job_id, con, folder):
     print "Running Classical PSHA hazard..."
     
     cur = con.cursor()
-    proc_hazard = subprocess.Popen(["/usr/local/openquake/oq-engine/bin/openquake", "--log-file", folder+"/log.txt", "--rh", folder+"/configuration.ini"], stdout=subprocess.PIPE)
+    proc_hazard = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--rh", folder+"/configuration.ini"], stdout=subprocess.PIPE)
     proc_hazard.wait()
     output_proc_hazard = proc_hazard.stdout.read().split("\n")
     hazard_output_id = output_proc_hazard[2].split()[0]
@@ -288,7 +317,7 @@ def start(id, connection):
                 sites_type, vs30, vs30type, z1pt0, z2pt5, site_model_id, random_seed, \
                 rupture_mesh_spacing, truncation_level, max_distance, \
                 n_lt_samples, width_of_mfd_bin, area_source_discretization, investigation_time, \
-                imt_l, poes, quantile_hazard_curves \
+                imt_l, poes, quantile_hazard_curves, gmpe_logic_tree_id, sm_logic_tree_id \
                 from jobs_classical_psha_hazard \
                 where id = %s', (id,))
     data = cur.fetchone()
@@ -313,7 +342,9 @@ def start(id, connection):
                 investigation_time = data[16],
                 imt_l = data[17],
                 poes = data[18],
-                quantile_hazard_curves = data[19])
+                quantile_hazard_curves = data[19],
+                gmpe_logic_tree_id = data[20],
+                sm_logic_tree_id = data[21])
     
     cur = connection.cursor()
     cur.execute('select current_database()')
@@ -330,23 +361,15 @@ def start(id, connection):
         create_site_model(params['site_model_id'], connection, FOLDER)
     
 
+    cur.execute('SELECT source_model_id \
+                FROM eng_models_logic_tree_sm_source_models \
+                WHERE logic_tree_sm_id = %s', (params['sm_logic_tree_id'],))
 
-    cur.execute('SELECT jobs_classical_psha_hazard_logic_trees.logic_tree_id, eng_models_logic_tree.type \
-                FROM jobs_classical_psha_hazard_logic_trees, eng_models_logic_tree \
-                WHERE jobs_classical_psha_hazard_logic_trees.classical_psha_hazard_id = %s \
-                AND eng_models_logic_tree.id = jobs_classical_psha_hazard_logic_trees.logic_tree_id', (id,))
+    for source in cur.fetchall():
+        create_source_model(source[0], connection, FOLDER)
 
-    for tree in cur.fetchall():
-        create_logic_tree_v1(tree[0], tree[1], connection, FOLDER)
-
-        if tree[1] == 'source':
-
-            cur.execute('SELECT source_model_id \
-                    FROM eng_models_logic_tree_source_models \
-                    WHERE logic_tree_id = %s ', (tree[0],))
-
-            for source in cur.fetchall():
-                create_source_model(source[0], connection, FOLDER)
+    create_logic_tree_sm(params['sm_logic_tree_id'], connection, FOLDER)
+    create_logic_tree_gmpe(params['gmpe_logic_tree_id'], connection, FOLDER)
 
 
     create_ini_file(params, FOLDER)

@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<nrml xmlns:gml="http://www.opengis.net/gml" xmlns="http://openquake.org/xmlns/nrml/0.4">
+    <logicTree logicTreeID="lt">
+        {% for level in levels %}
+            <logicTreeBranchingLevel branchingLevelID="l{{ level.id }}">
+                <logicTreeBranchSet uncertaintyType="gmpeModel" branchSetID="s{{ level.id }}" applyToTectonicRegionType='{{ level.tectonic_region }}'>
+                    {% for branch in level.branches %}
+                    <logicTreeBranch branchID="b{{ branch.id }}">
+                        <uncertaintyModel>{{ branch.gmpe }}</uncertaintyModel>
+                        <uncertaintyWeight>{{ branch.weight }}</uncertaintyWeight>
+                    </logicTreeBranch>
+                    {% endfor %}
+                </logicTreeBranchSet>
+            </logicTreeBranchingLevel>
+        {% endfor %}
+     </logicTree>
+</nrml>

@@ -39,7 +39,7 @@ reference_depth_to_1pt0km_per_sec = {{ z2pt5 }}
 
 truncation_level = {{ truncation_level }}
 maximum_distance = {{ max_distance }}
-source_model_logic_tree_file = source_logic_tree.xml
+source_model_logic_tree_file = sm_logic_tree.xml
 gsim_logic_tree_file = gmpe_logic_tree.xml
 investigation_time = {{ investigation_time }}
 intensity_measure_types_and_levels = {{ imt_l }}
@@ -51,7 +51,7 @@ maximum_distance = {{ max_distance }}
 
 export_dir = ./tmp
 mean_hazard_curves = true
-indivudual_curves = true
+individual_curves = true
 quantile_hazard_curves = {% for quantile in quantile_hazard_curves %} {{ quantile }} {% endfor %}
 hazard_maps = true
 poes = {% for poe in poes %} {{ poe }} {% endfor %}
