@@ -126,7 +126,7 @@ def run(job_id, con, folder):
                 and jobs_scenario_risk.id = %s', (job_id,))
     hazard_id = cur.fetchone()[0]
 
-    proc_damage = subprocess.Popen(["/usr/local/openquake/oq-engine/bin/openquake", "--log-file", "/dev/null", "--run-risk", folder+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
+    proc_damage = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--run-risk", folder+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
     proc_damage.wait()
     output_proc_risk = proc_damage.stdout.read().split("\n")
     

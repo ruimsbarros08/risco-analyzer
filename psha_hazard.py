@@ -223,9 +223,11 @@ def run(job_id, con, folder):
     output_proc_hazard = proc_hazard.stdout.read().split("\n")
     hazard_output_id = output_proc_hazard[2].split()[0]
 
+    print output_proc_hazard
+
     oq_curves_ids = []
     oq_map_ids = []
-    for e in output_proc_risk:
+    for e in output_proc_hazard:
         try:
             a = e.split(' | ')
             if a[1] == 'Hazard Curve':
