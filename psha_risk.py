@@ -14,12 +14,12 @@ templateLoader = jinja2.FileSystemLoader(PATH + 'templates/')
 templateEnv = jinja2.Environment(loader=templateLoader)
 
 
-def create_ini_file(params, folder):
+def create_ini_file(params, vulnerability_models, folder):
     print "-------"
     print "Creating .ini file"
 
     conf_template = templateEnv.get_template('configuration_psha_risk.jinja')
-    conf_output = conf_template.render(params)
+    conf_output = conf_template.render({'params':params, 'vulnerability_models': vulnerability_models})
 
     with open(folder+"/configuration.ini", "wb") as file:
         file.write(conf_output)
@@ -208,14 +208,19 @@ def start(id, connection):
                 )
 
 
-    cur.execute('select vulnerability_model_id from jobs_classical_psha_risk_vulnerability_models \
-                where classical_psha_risk_id = %s', [id])
-    for model in cur.fetchall():
-        create_vulnerability_model(model[0], connection, FOLDER)
+    cur.execute('SELECT jobs_classical_psha_risk_vulnerability_models.vulnerability_model_id, eng_models_vulnerability_model.type \
+                FROM jobs_classical_psha_risk_vulnerability_models, eng_models_vulnerability_model \
+                WHERE jobs_classical_psha_risk_vulnerability_models.classical_psha_risk_id = %s \
+                AND jobs_classical_psha_risk_vulnerability_models.vulnerability_model_id = eng_models_vulnerability_model.id', [id])
+
+    vulnerability_models = [{'id':e[0], 'type':e[1],} for e in cur.fetchall()]
+
+    for model in vulnerability_models:
+        create_vulnerability_model(model['id'], connection, FOLDER)
 
     create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
 
-    create_ini_file(params, FOLDER)
+    create_ini_file(params, vulnerability_models, FOLDER)
     run(params['hazard_id'], connection, FOLDER)
     #save(id, oq_curves_ids, oq_map_ids, connection)
 

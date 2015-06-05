@@ -1,25 +1,25 @@
 [general]
 
-description = {{ name }}
+description = {{ params.name }}
 calculation_mode = classical_risk
-random_seed = {{ random_seed }}
+random_seed = {{ params.random_seed }}
 exposure_file = exposure_model.xml
 
 
 [geometry]
 
-region_constraint = {{ region }}
+region_constraint = {{ params.region }}
 
 
 [calculation]
 
-asset_hazard_distance = {{ asset_hazard_distance }}
-lrem_steps_per_interval = {{ lrem_steps_per_interval }}
-asset_correlation = {{ asset_correlation }}
+asset_hazard_distance = {{ params.asset_hazard_distance }}
+lrem_steps_per_interval = {{ params.lrem_steps_per_interval }}
+asset_correlation = {{ params.asset_correlation }}
 
-{% for vul in vulnerability %}
+{% for vul in vulnerability_models %}
 
-{{ vul[0] }}_file = {{ vul[0] }}_model.xml
+{{ vul.type }}_file = {{ vul.type }}_model.xml
 
 {% endfor %}
 
@@ -29,9 +29,9 @@ asset_correlation = {{ asset_correlation }}
 export_dir = ./tmp
 mean_loss_curves = true
 individual_curves = true
-quantile_loss_curves = {% for quantile in quantile_loss_curves %} {{ quantile }} {% endfor %}
+quantile_loss_curves = {% for quantile in params.quantile_loss_curves %} {{ quantile }} {% endfor %}
 hazard_maps = true
-conditional_loss_poes = {% for poe in poes %} {{ poe }} {% endfor %}
+conditional_loss_poes = {% for poe in params.poes %} {{ poe }} {% endfor %}
 
 
 
