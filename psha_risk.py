@@ -27,7 +27,7 @@ def create_ini_file(params, folder):
 
 
 
-def run(job_id, con, folder):
+def run(hazard_id, con, folder):
     print "-------"
     print "Running Classical PSHA risk..."
     
@@ -216,7 +216,7 @@ def start(id, connection):
     create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
 
     create_ini_file(params, FOLDER)
-    run(id, connection, FOLDER)
+    run(params['hazard_id'], connection, FOLDER)
     #save(id, oq_curves_ids, oq_map_ids, connection)
 
 
