@@ -32,7 +32,7 @@ def run(job_id, con, folder):
     print "Running Classical PSHA risk..."
     
     cur = con.cursor()
-    proc = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--rr", folder+"/configuration.ini"], stdout=subprocess.PIPE)
+    proc = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--rr", folder+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
     proc.wait()
     
     output_risk = proc.stdout.read().split("\n")
@@ -223,6 +223,7 @@ def start(id, connection):
                 where id = %s', (id,))
     data = cur.fetchone()
 
+    region_wkt = data[1]
 
     params = dict(name = data[0],
                 region = data[1].split('(')[2].split(')')[0],
@@ -242,7 +243,7 @@ def start(id, connection):
     for model in cur.fetchall():
         create_vulnerability_model(model[0], connection, FOLDER)
 
-    create_exposure_model(params['exposure_model_id'], connection, FOLDER, params['region'])
+    create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
 
     create_ini_file(params, FOLDER)
     oq_curves_ids, oq_map_ids = run(id, connection, FOLDER)
