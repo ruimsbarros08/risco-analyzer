@@ -286,7 +286,7 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
                         foreign_lt_realization.gsim_lt_path, foreign_lt_source_model.sm_lt_path, \
                         foreign_hazard_curve.imls, foreign_hazard_curve_data.poes \
                         FROM world_fishnet, foreign_hazard_curve, foreign_hazard_curve_data, foreign_lt_realization, foreign_lt_source_model \
-                        WHERE foreign_hazard_curve.output_id = %s \
+                        WHERE foreign_hazard_curve.id = %s \
                         AND foreign_hazard_curve_data.hazard_curve_id = foreign_hazard_curve.id \
                         AND foreign_lt_realization.id = foreign_hazard_curve.lt_realization_id \
                         AND foreign_lt_realization.lt_model_id = foreign_lt_source_model.id \
@@ -302,82 +302,86 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
                         null, null, \
                         foreign_hazard_curve.imls, foreign_hazard_curve_data.poes \
                         FROM world_fishnet, foreign_hazard_curve, foreign_hazard_curve_data \
-                        WHERE foreign_hazard_curve.output_id = %s \
+                        WHERE foreign_hazard_curve.id = %s \
                         AND foreign_hazard_curve_data.hazard_curve_id = foreign_hazard_curve.id \
                         AND ST_Intersects(foreign_hazard_curve_data.location::geometry, world_fishnet.cell)", (job_id, e['id']))
             con.commit()
 
     print "-------"
     print "Storing maps"
+
+    for e in oq_map_ids:
     
-    cur = con.cursor()
-    cur.execute("SELECT lons, lats, imls, poe \
-                FROM foreign_hazard_map \
-                WHERE output_id = %s ", (e['id'],))
+        print " * OQ id: "+str(e['id'])
 
-    data = cur.fetchone()
-    poe = data[3]
-    i=0
-    for lon, lat, iml in zip(data[0], data[1], data[2]):
+        cur = con.cursor()
+        cur.execute("SELECT lons, lats, imls, poe \
+                    FROM foreign_hazard_map \
+                    WHERE id = %s ", (e['id'],))
 
-        point = "POINT("+str(lon)+" "+str(lat)+")"
+        data = cur.fetchone()
+        poe = data[3]
+        i=0
+        for lon, lat, iml in zip(data[0], data[1], data[2]):
 
-        if e['statistics'] == 'quantile':
+            point = "POINT("+str(lon)+" "+str(lat)+")"
 
-            if e['imt'] != 'SA':
+            if e['statistics'] == 'quantile':
 
-                cur.execute("SELECT id \
-                            FROM jobs_classical_psha_hazard_curves \
-                            WHERE statistics    = 'quantile' \
-                            AND quantile        = %s \
-                            AND imt             = %s \
-                            AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
-                            AND job_id = %s", (e['quantile'], e['imt'], point, job_id))
+                if e['imt'] != 'SA':
 
+                    cur.execute("SELECT id \
+                                FROM jobs_classical_psha_hazard_curves \
+                                WHERE statistics    = 'quantile' \
+                                AND quantile        = %s \
+                                AND imt             = %s \
+                                AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
+                                AND job_id = %s", (e['quantile'], e['imt'], point, job_id))
+
+                else:
+
+                    cur.execute("SELECT id \
+                                FROM jobs_classical_psha_hazard_curves \
+                                WHERE statistics = 'quantile' \
+                                AND quantile     = %s \
+                                AND imt          = %s \
+                                AND sa_period    = %s \
+                                AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
+                                AND job_id = %s", (e['quantile'], e['imt'], e['sa_period'], point, job_id))
+            
+            else: #mean
+
+                if e['imt'] != 'SA':
+
+                    cur.execute("SELECT id \
+                                FROM jobs_classical_psha_hazard_curves \
+                                WHERE statistics = 'mean' \
+                                AND imt          = %s \
+                                AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
+                                AND job_id = %s", (e['imt'], point, job_id))
+
+                else:
+
+                    cur.execute("SELECT id \
+                                FROM jobs_classical_psha_hazard_curves \
+                                WHERE statistics = 'mean' \
+                                AND imt          = %s \
+                                AND sa_period    = %s \
+                                AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
+                                AND job_id = %s", (e['imt'], e['sa_period'], point, job_id))
+
+
+            location = cur.fetchone()[0]
+            if location != None:
+                cur = con.cursor()
+                cur.execute("INSERT INTO jobs_classical_psha_hazard_maps (location_id, iml, poe) \
+                            VALUES (%s, %s, %s) ", (location, iml, poe))
+                con.commit()
+                i+=1
             else:
+                print "Couldn't find the location for lon:", lon, ", lat:", lat, "IML:", iml, "poe:", poe
 
-                cur.execute("SELECT id \
-                            FROM jobs_classical_psha_hazard_curves \
-                            WHERE statistics = 'quantile' \
-                            AND quantile     = %s \
-                            AND imt          = %s \
-                            AND sa_period    = %s \
-                            AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
-                            AND job_id = %s", (e['quantile'], e['imt'], e['sa_period'], point, job_id))
-        
-        else: #mean
-
-            if e['imt'] != 'SA':
-
-                cur.execute("SELECT id \
-                            FROM jobs_classical_psha_hazard_curves \
-                            WHERE statistics = 'mean' \
-                            AND imt          = %s \
-                            AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
-                            AND job_id = %s", (e['imt'], point, job_id))
-
-            else:
-
-                cur.execute("SELECT id \
-                            FROM jobs_classical_psha_hazard_curves \
-                            WHERE statistics = 'mean' \
-                            AND imt          = %s \
-                            AND sa_period    = %s \
-                            AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
-                            AND job_id = %s", (e['imt'], e['sa_period'], point, job_id))
-
-
-        location = cur.fetchone()[0]
-        if location != None:
-            cur = con.cursor()
-            cur.execute("INSERT INTO jobs_classical_psha_hazard_maps (location_id, iml, poe) \
-                        VALUES (%s, %s, %s) ", (location, iml, poe))
-            con.commit()
-            i+=1
-        else:
-            print "Couldn't find the location for lon:", lon, ", lat:", lat, "IML:", iml, "poe:", poe
-
-    print "Inserted:", i, "of", len(data[2]) 
+        print "Inserted:", i, "of", len(data[2]) 
 
 
 

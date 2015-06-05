@@ -23,3 +23,6 @@ def start(job_id, job_type, database):
 
 	if job_type == 'psha_hazard':
 		psha_hazard.start(job_id, connection)
+
+	if job_type == 'psha_risk':
+		psha_hazard.start(job_id, connection)
