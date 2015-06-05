@@ -2,6 +2,7 @@ import scenario_hazard
 import scenario_damage
 import scenario_risk
 import psha_hazard
+import psha_risk
 import psycopg2
 
 def connect(host, dbname, user, password):
@@ -25,4 +26,4 @@ def start(job_id, job_type, database):
 		psha_hazard.start(job_id, connection)
 
 	if job_type == 'psha_risk':
-		psha_hazard.start(job_id, connection)
+		psha_risk.start(job_id, connection)
