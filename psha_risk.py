@@ -47,38 +47,8 @@ def run(job_id, con, folder):
     cur.execute("SELECT oq_job_id FROM foreign_output WHERE id = %s", (curve_id,))
     risk_output_id = cur.fetchone()[0]
 
-    cur.execute("SELECT foreign_hazard_curve.id, foreign_hazard_curve.statistics, \
-                foreign_hazard_curve.quantile, foreign_hazard_curve.imt, foreign_hazard_curve.sa_period  \
-                FROM foreign_hazard_curve, foreign_output \
-                WHERE foreign_output.oq_job_id = %s \
-                AND foreign_hazard_curve.output_id = foreign_output.id \
-                AND foreign_output.output_type = 'hazard_curve'", (hazard_output_id,))
-
-    oq_curves_ids = [ { 'id':e[0],
-                        'statistics': e[1],
-                        'quantile': e[2],
-                        'imt': e[3],
-                        'sa_period': e[4] } for e in cur.fetchall() ]
-
-    cur.execute("SELECT foreign_hazard_map.id, foreign_hazard_map.statistics, \
-                foreign_hazard_map.quantile, foreign_hazard_map.imt, foreign_hazard_map.sa_period  \
-                FROM foreign_hazard_map, foreign_output \
-                WHERE foreign_output.oq_job_id = %s \
-                AND foreign_hazard_map.output_id = foreign_output.id \
-                AND foreign_output.output_type = 'hazard_map'\
-                AND foreign_hazard_map.lt_realization_id is null", (hazard_output_id,))
-
-    oq_map_ids = [ { 'id':e[0],
-                        'statistics': e[1],
-                        'quantile': e[2],
-                        'imt': e[3],
-                        'sa_period': e[4] } for e in cur.fetchall() ]
-
-
-    cur.execute('update jobs_classical_psha_hazard set oq_id = %s where id = %s', (hazard_output_id, job_id))
+    cur.execute('update jobs_classical_psha_risk set oq_id = %s where id = %s', (risk_output_id, job_id))
     con.commit()
-
-    return oq_curves_ids, oq_map_ids
 
 
 def save(job_id, oq_curves_ids, oq_map_ids, con):
@@ -246,9 +216,9 @@ def start(id, connection):
     create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
 
     create_ini_file(params, FOLDER)
-    oq_curves_ids, oq_map_ids = run(id, connection, FOLDER)
-    save(id, oq_curves_ids, oq_map_ids, connection)
+    run(id, connection, FOLDER)
+    #save(id, oq_curves_ids, oq_map_ids, connection)
 
 
-    cur.execute("update jobs_classical_psha_risk set status = 'FINISHED' where id = %s", (id,))
-    connection.commit()
+    #cur.execute("update jobs_classical_psha_risk set status = 'FINISHED' where id = %s", (id,))
+    #connection.commit()

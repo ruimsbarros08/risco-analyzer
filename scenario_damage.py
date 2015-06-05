@@ -78,13 +78,13 @@ def create_exposure_model(id, con, folder, region):
     print "Creating Exposure Model"
 
     cur = con.cursor()
-    cur.execute('select eng_models_exposure_model.id, eng_models_exposure_model.name, area_type, area_unit, \
+    cur.execute('SELECT eng_models_exposure_model.id, eng_models_exposure_model.name, area_type, area_unit, \
                 struct_cost_type, struct_cost_currency, non_struct_cost_type, non_struct_cost_currency, \
                 contents_cost_type, contents_cost_currency, business_int_cost_type, business_int_cost_currency, \
                 deductible, insurance_limit, eng_models_building_taxonomy_source.name \
-                from eng_models_exposure_model, eng_models_building_taxonomy_source \
-                where eng_models_exposure_model.id = %s \
-                and eng_models_exposure_model.taxonomy_source_id = eng_models_building_taxonomy_source.id', (id,))
+                FROM eng_models_exposure_model, eng_models_building_taxonomy_source \
+                WHERE eng_models_exposure_model.id = %s \
+                AND eng_models_exposure_model.taxonomy_source_id = eng_models_building_taxonomy_source.id', (id,))
     e =  cur.fetchone()
 
     model = dict(id = e[0],
@@ -103,16 +103,16 @@ def create_exposure_model(id, con, folder, region):
                 insurance_limit = e[13],
                 taxonomy_source = e[14])
 
-    cur.execute('select eng_models_asset.id, st_x(location), st_y(location), \
+    cur.execute('SELECT eng_models_asset.id, st_x(location), st_y(location), \
                 eng_models_asset.name, n_buildings, area, struct_cost, struct_deductible, struct_insurance_limit, retrofitting_cost, \
                 non_struct_cost, non_struct_deductible, non_struct_insurance_limit, \
                 contents_cost, contents_deductible, contents_insurance_limit, business_int_cost, business_int_deductible, business_int_insurance_limit, \
                 oc_day, oc_night, oc_transit, eng_models_building_taxonomy.name \
-                from eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model \
-                where eng_models_exposure_model.id = eng_models_asset.model_id \
-                and eng_models_exposure_model.id = %s \
-                and eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id \
-                and ST_Within(eng_models_asset.location, %s)', (id, region))
+                FROM eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model \
+                WHERE eng_models_exposure_model.id = eng_models_asset.model_id \
+                AND eng_models_exposure_model.id = %s \
+                AND eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id \
+                AND ST_Within(eng_models_asset.location, ST_GeomFromText(%s, 4326))', (id, region))
 
     assets = [dict(id = asset[0],
                     lon = asset[1],
