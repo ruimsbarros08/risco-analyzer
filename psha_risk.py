@@ -32,7 +32,7 @@ def run(hazard_id, con, folder):
     print "Running Classical PSHA risk..."
     
     cur = con.cursor()
-    proc = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--rr", folder+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
+    proc = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--rr", folder+"/configuration.ini", "--hazard-calculation-id", str(hazard_id)], stdout=subprocess.PIPE)
     proc.wait()
     
     output_risk = proc.stdout.read().split("\n")

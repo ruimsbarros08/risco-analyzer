@@ -180,7 +180,7 @@ def run(job_id, con, folder):
                 and jobs_scenario_damage.id = %s', (job_id,))
     hazard_id = cur.fetchone()[0]
 
-    proc_damage = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--run-risk", folder+"/configuration.ini", "--hazard-calculation-id", str(hazard_id)], stdout=subprocess.PIPE)
+    proc_damage = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--run-risk", folder+"/configuration.ini", "--hazard-output-id", str(hazard_id)], stdout=subprocess.PIPE)
     proc_damage.wait()
     output_proc_damage = proc_damage.stdout.read().split("\n")
 
