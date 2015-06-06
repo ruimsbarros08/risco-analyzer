@@ -27,10 +27,8 @@ asset_correlation = {{ params.asset_correlation }}
 [output]
 
 export_dir = ./tmp
-mean_loss_curves = true
 individual_curves = true
 quantile_loss_curves = {% for quantile in params.quantile_loss_curves %} {{ quantile }} {% endfor %}
-hazard_maps = true
 conditional_loss_poes = {% for poe in params.poes %} {{ poe }} {% endfor %}
 
 
