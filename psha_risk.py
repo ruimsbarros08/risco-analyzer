@@ -47,49 +47,78 @@ def run(hazard_id, con, folder):
     cur.execute("SELECT oq_job_id FROM foreign_output WHERE id = %s", (curve_id,))
     risk_output_id = cur.fetchone()[0]
 
+
+    cur.execute("SELECT foreign_loss_curve.id, foreign_loss_curve.statistics, \
+                foreign_loss_curve.quantile, foreign_loss_curve.loss_type, foreign_loss_curve.insured \
+                FROM foreign_loss_curve, foreign_output \
+                WHERE foreign_output.oq_job_id = %s \
+                AND foreign_loss_curve.output_id = foreign_output.id \
+                AND foreign_output.output_type = 'loss_curve'", (risk_output_id,))
+
+    oq_curves_ids = [ { 'id':e[0],
+                        'statistics': e[1],
+                        'quantile': e[2],
+                        'loss_type': e[3],
+                        'insured': e[4] } for e in cur.fetchall() ]
+
+    cur.execute("SELECT foreign_loss_map.id, foreign_loss_map.statistics, \
+                foreign_loss_map.quantile, foreign_loss_map.loss_type, foreign_loss_map.insured \
+                FROM foreign_loss_map, foreign_output \
+                WHERE foreign_output.oq_job_id = %s \
+                AND foreign_loss_map.output_id = foreign_output.id \
+                AND foreign_output.output_type = 'loss_map'", (risk_output_id,))
+
+    oq_map_ids = [ { 'id':e[0],
+                        'statistics': e[1],
+                        'quantile': e[2],
+                        'loss_type': e[3],
+                        'insured': e[4] } for e in cur.fetchall() ]
+
+
     cur.execute('update jobs_classical_psha_risk set oq_id = %s where id = %s', (risk_output_id, job_id))
     con.commit()
 
+    return oq_curves_ids, oq_map_ids
 
-def save(job_id, oq_curves_ids, oq_map_ids, con):
+
+def save(job_id, oq_curves_ids, oq_map_ids, con): 
     print "-------"
     print "Storing curves"
 
     for e in oq_curves_ids:
-        
+
         print " * OQ id: "+str(e['id'])
+
+        if e['loss_type'] == 'fatalities':
+            loss_type = 'occupants'+'_vulnerability'
+        else:
+            loss_type =  e['loss_type']+'_vulnerability'
         
         cur = con.cursor()
 
-        if e['statistics'] == None:
-            cur.execute("INSERT INTO jobs_classical_psha_hazard_curves (job_id, location, cell_id, imt, sa_period, sa_damping, \
-                        weight, statistics, quantile, sm_lt_path, gsim_lt_path, imls, poes) \
-                        SELECT %s, foreign_hazard_curve_data.location::geometry, world_fishnet.id, \
-                        foreign_hazard_curve.imt, foreign_hazard_curve.sa_period, foreign_hazard_curve.sa_damping, \
-                        foreign_hazard_curve_data.weight, foreign_hazard_curve.statistics, foreign_hazard_curve.quantile, \
-                        foreign_lt_realization.gsim_lt_path, foreign_lt_source_model.sm_lt_path, \
-                        foreign_hazard_curve.imls, foreign_hazard_curve_data.poes \
-                        FROM world_fishnet, foreign_hazard_curve, foreign_hazard_curve_data, foreign_lt_realization, foreign_lt_source_model \
-                        WHERE foreign_hazard_curve.id = %s \
-                        AND foreign_hazard_curve_data.hazard_curve_id = foreign_hazard_curve.id \
-                        AND foreign_lt_realization.id = foreign_hazard_curve.lt_realization_id \
-                        AND foreign_lt_realization.lt_model_id = foreign_lt_source_model.id \
-                        AND ST_Intersects(foreign_hazard_curve_data.location::geometry, world_fishnet.cell)", (job_id, e['id']))
-            con.commit()
+        cur.execute('SELECT jobs_classical_psha_risk_vulnerability.id, jobs_classical_psha_risk.exposure_model_id \
+                    FROM eng_models_vulnerability_model, jobs_classical_psha_risk_vulnerability, jobs_classical_psha_risk \
+                    WHERE eng_models_vulnerability_model.type = %s \
+                    AND eng_models_vulnerability_model.id = jobs_classical_psha_risk_vulnerability.vulnerability_model_id \
+                    AND jobs_classical_psha_risk_vulnerability.job_id = %s', (loss_type, job_id))
+        data = cur.fetchone()
+        job_vul_id = data[0]
+        exposure_model_id = data[1]
 
-        else:
-            cur.execute("INSERT INTO jobs_classical_psha_hazard_curves (job_id, location, cell_id, imt, sa_period, sa_damping, \
-                        weight, statistics, quantile, sm_lt_path, gsim_lt_path, imls, poes) \
-                        SELECT %s, foreign_hazard_curve_data.location::geometry, world_fishnet.id, \
-                        foreign_hazard_curve.imt, foreign_hazard_curve.sa_period, foreign_hazard_curve.sa_damping, \
-                        foreign_hazard_curve_data.weight, foreign_hazard_curve.statistics, foreign_hazard_curve.quantile, \
-                        null, null, \
-                        foreign_hazard_curve.imls, foreign_hazard_curve_data.poes \
-                        FROM world_fishnet, foreign_hazard_curve, foreign_hazard_curve_data \
-                        WHERE foreign_hazard_curve.id = %s \
-                        AND foreign_hazard_curve_data.hazard_curve_id = foreign_hazard_curve.id \
-                        AND ST_Intersects(foreign_hazard_curve_data.location::geometry, world_fishnet.cell)", (job_id, e['id']))
-            con.commit()
+        cur.execute("INSERT INTO jobs_classical_psha_risk_loss_curves (vulnerability_model_id, asset_id, hazard_output_id, \
+                    statistics, quantile, loss_ratios, poes, average_loss_ratio, stddev_loss_ratio, asset_value) \
+                    SELECT %s, eng_models_asset.id, foreign_loss_curve.hazard_output_id, \
+                    foreign_loss_curve.statistics, foreign_loss_curve.quantile, \
+                    foreign_loss_curve_data.loss_ratios, foreign_loss_curve_data.poes, \
+                    foreign_loss_curve_data.average_loss_ratio, foreign_loss_curve_data.stddev_loss_ratio, \
+                    foreign_loss_curve_data.asset_value \
+                    FROM eng_models_asset, foreign_loss_curve, foreign_loss_curve_data \
+                    WHERE foreign_loss_curve.id = %s \
+                    AND foreign_loss_curve_data.loss_curve_id = foreign_loss_curve.id \
+                    AND foreign_loss_curve_data.asset_ref = eng_models_asset.name \
+                    AND eng_models_asset.model_id = %s", (job_vul_id, e['id'], exposure_model_id))
+        con.commit()
+
 
     print "-------"
     print "Storing maps"
@@ -98,74 +127,36 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
     
         print " * OQ id: "+str(e['id'])
 
+        if e['loss_type'] == 'fatalities':
+            loss_type = 'occupants'+'_vulnerability'
+        else:
+            loss_type =  e['loss_type']+'_vulnerability'
+        
         cur = con.cursor()
-        cur.execute("SELECT lons, lats, imls, poe \
-                    FROM foreign_hazard_map \
-                    WHERE id = %s ", (e['id'],))
 
+        cur.execute('SELECT jobs_classical_psha_risk_vulnerability.id, jobs_classical_psha_risk.exposure_model_id \
+                    FROM eng_models_vulnerability_model, jobs_classical_psha_risk_vulnerability, jobs_classical_psha_risk \
+                    WHERE eng_models_vulnerability_model.type = %s \
+                    AND eng_models_vulnerability_model.id = jobs_classical_psha_risk_vulnerability.vulnerability_model_id \
+                    AND jobs_classical_psha_risk_vulnerability.job_id = %s', (loss_type, job_id))
         data = cur.fetchone()
-        poe = data[3]
-        i=0
-        for lon, lat, iml in zip(data[0], data[1], data[2]):
+        job_vul_id = data[0]
+        exposure_model_id = data[1]
 
-            point = "POINT("+str(lon)+" "+str(lat)+")"
+        if e['statistics'] != None:
 
-            if e['statistics'] == 'quantile':
+            cur.execute("INSERT INTO jobs_classical_psha_risk_loss_maps (vulnerability_model_id, asset_id, hazard_output_id, \
+                        statistics, quantile, poe, mean, stddev) \
+                        SELECT %s, eng_models_asset.id, foreign_loss_map.hazard_output_id, \
+                        foreign_loss_map.statistics, foreign_loss_map.quantile, foreign_loss_map.poe, \
+                        foreign_loss_map_data.value, foreign_loss_map_data.std_dev  \
+                        FROM eng_models_asset, foreign_loss_map, foreign_loss_map_data \
+                        WHERE foreign_loss_map.id = %s \
+                        AND foreign_loss_map_data.loss_map_id = foreign_loss_map.id \
+                        AND foreign_loss_map_data.asset_ref = eng_models_asset.name \
+                        AND eng_models_asset.model_id = %s", (job_vul_id, e['id'], exposure_model_id))
 
-                if e['imt'] != 'SA':
-
-                    cur.execute("SELECT id \
-                                FROM jobs_classical_psha_hazard_curves \
-                                WHERE statistics    = 'quantile' \
-                                AND quantile        = %s \
-                                AND imt             = %s \
-                                AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
-                                AND job_id = %s", (e['quantile'], e['imt'], point, job_id))
-
-                else:
-
-                    cur.execute("SELECT id \
-                                FROM jobs_classical_psha_hazard_curves \
-                                WHERE statistics = 'quantile' \
-                                AND quantile     = %s \
-                                AND imt          = %s \
-                                AND sa_period    = %s \
-                                AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
-                                AND job_id = %s", (e['quantile'], e['imt'], e['sa_period'], point, job_id))
-            
-            else: #mean
-
-                if e['imt'] != 'SA':
-
-                    cur.execute("SELECT id \
-                                FROM jobs_classical_psha_hazard_curves \
-                                WHERE statistics = 'mean' \
-                                AND imt          = %s \
-                                AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
-                                AND job_id = %s", (e['imt'], point, job_id))
-
-                else:
-
-                    cur.execute("SELECT id \
-                                FROM jobs_classical_psha_hazard_curves \
-                                WHERE statistics = 'mean' \
-                                AND imt          = %s \
-                                AND sa_period    = %s \
-                                AND ST_Equals(location, st_geomfromtext(%s, 4326)) \
-                                AND job_id = %s", (e['imt'], e['sa_period'], point, job_id))
-
-
-            location = cur.fetchone()[0]
-            if location != None:
-                cur = con.cursor()
-                cur.execute("INSERT INTO jobs_classical_psha_hazard_maps (location_id, iml, poe) \
-                            VALUES (%s, %s, %s) ", (location, iml, poe))
-                con.commit()
-                i+=1
-            else:
-                print "Couldn't find the location for lon:", lon, ", lat:", lat, "IML:", iml, "poe:", poe
-
-        print "Inserted:", i, "of", len(data[2]) 
+            con.commit()
 
 
 
@@ -221,9 +212,9 @@ def start(id, connection):
     create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
 
     create_ini_file(params, vulnerability_models, FOLDER)
-    run(params['hazard_id'], connection, FOLDER)
-    #save(id, oq_curves_ids, oq_map_ids, connection)
+    oq_curves_ids, oq_map_ids = run(params['hazard_id'], connection, FOLDER)
+    save(id, oq_curves_ids, oq_map_ids, connection)
 
 
-    #cur.execute("update jobs_classical_psha_risk set status = 'FINISHED' where id = %s", (id,))
-    #connection.commit()
+    cur.execute("update jobs_classical_psha_risk set status = 'FINISHED' where id = %s", (id,))
+    connection.commit()

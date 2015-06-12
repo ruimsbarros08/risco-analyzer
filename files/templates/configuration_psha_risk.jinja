@@ -5,6 +5,11 @@ calculation_mode = classical_risk
 random_seed = {{ params.random_seed }}
 exposure_file = exposure_model.xml
 
+{% for vul in vulnerability_models %}
+
+{{ vul.type }}_file = {{ vul.type }}_model.xml
+
+{% endfor %}
 
 [geometry]
 
@@ -17,11 +22,6 @@ asset_hazard_distance = {{ params.asset_hazard_distance }}
 lrem_steps_per_interval = {{ params.lrem_steps_per_interval }}
 asset_correlation = {{ params.asset_correlation }}
 
-{% for vul in vulnerability_models %}
-
-{{ vul.type }}_file = {{ vul.type }}_model.xml
-
-{% endfor %}
 
 
 [output]
