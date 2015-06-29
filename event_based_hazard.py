@@ -269,7 +269,7 @@ def start(id, connection):
 
 
     create_ini_file(params, FOLDER)
-    # oq_curves_ids, oq_map_ids = run(id, connection, FOLDER)
+    oq_curves_ids, oq_map_ids = run(id, connection, FOLDER)
     # save(id, oq_curves_ids, oq_map_ids, connection)
 
 
