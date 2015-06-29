@@ -106,12 +106,12 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
         exposure_model_id = data[1]
 
         cur.execute("INSERT INTO jobs_classical_psha_risk_loss_curves (vulnerability_model_id, asset_id, hazard_output_id, \
-                    statistics, quantile, loss_ratios, poes, average_loss_ratio, stddev_loss_ratio, asset_value) \
+                    statistics, quantile, loss_ratios, poes, average_loss_ratio, stddev_loss_ratio, asset_value, insured) \
                     SELECT %s, eng_models_asset.id, foreign_loss_curve.hazard_output_id, \
                     foreign_loss_curve.statistics, foreign_loss_curve.quantile, \
                     foreign_loss_curve_data.loss_ratios, foreign_loss_curve_data.poes, \
                     foreign_loss_curve_data.average_loss_ratio, foreign_loss_curve_data.stddev_loss_ratio, \
-                    foreign_loss_curve_data.asset_value \
+                    foreign_loss_curve_data.asset_value, foreign_loss_curve.insured \
                     FROM eng_models_asset, foreign_loss_curve, foreign_loss_curve_data \
                     WHERE foreign_loss_curve.id = %s \
                     AND foreign_loss_curve_data.loss_curve_id = foreign_loss_curve.id \
@@ -146,10 +146,10 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
         if e['statistics'] != None:
 
             cur.execute("INSERT INTO jobs_classical_psha_risk_loss_maps (vulnerability_model_id, asset_id, hazard_output_id, \
-                        statistics, quantile, poe, mean, stddev) \
+                        statistics, quantile, poe, mean, stddev, insured) \
                         SELECT %s, eng_models_asset.id, foreign_loss_map.hazard_output_id, \
                         foreign_loss_map.statistics, foreign_loss_map.quantile, foreign_loss_map.poe, \
-                        foreign_loss_map_data.value, foreign_loss_map_data.std_dev  \
+                        foreign_loss_map_data.value, foreign_loss_map_data.std_dev, foreign_loss_map.insured  \
                         FROM eng_models_asset, foreign_loss_map, foreign_loss_map_data \
                         WHERE foreign_loss_map.id = %s \
                         AND foreign_loss_map_data.loss_map_id = foreign_loss_map.id \

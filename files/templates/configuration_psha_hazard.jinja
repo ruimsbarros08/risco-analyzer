@@ -46,6 +46,9 @@ intensity_measure_types_and_levels = {{ imt_l }}
 truncation_level = {{ truncation_level }}
 maximum_distance = {{ max_distance }}
 
+{% if ses_per_logic_tree_path %}
+ses_per_logic_tree_path = {{ ses_per_logic_tree_path}}
+{% endif %}
 
 [output]
 
