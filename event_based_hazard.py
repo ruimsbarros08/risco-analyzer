@@ -210,7 +210,7 @@ def start(id, connection):
                 jobs_classical_psha_hazard.sites_type, jobs_classical_psha_hazard.vs30, jobs_classical_psha_hazard.vs30type, jobs_classical_psha_hazard.z1pt0, jobs_classical_psha_hazard.z2pt5, jobs_classical_psha_hazard.site_model_id, \
                 jobs_classical_psha_hazard.random_seed, jobs_classical_psha_hazard.rupture_mesh_spacing, jobs_classical_psha_hazard.truncation_level, jobs_classical_psha_hazard.max_distance, \
                 jobs_classical_psha_hazard.n_lt_samples, jobs_classical_psha_hazard.width_of_mfd_bin, jobs_classical_psha_hazard.area_source_discretization, jobs_classical_psha_hazard.investigation_time, \
-                jobs_classical_psha_hazard.imt_l_test, jobs_classical_psha_hazard.poes, jobs_classical_psha_hazard.quantile_hazard_curves, jobs_classical_psha_hazard.gmpe_logic_tree_id, jobs_classical_psha_hazard.sm_logic_tree_id, \
+                jobs_classical_psha_hazard.imt_l, jobs_classical_psha_hazard.poes, jobs_classical_psha_hazard.quantile_hazard_curves, jobs_classical_psha_hazard.gmpe_logic_tree_id, jobs_classical_psha_hazard.sm_logic_tree_id, \
                 jobs_event_based_hazard.ses_per_logic_tree_path \
                 FROM jobs_classical_psha_hazard, jobs_event_based_hazard \
                 WHERE jobs_event_based_hazard.classical_psha_hazard_ptr_id = %s \
