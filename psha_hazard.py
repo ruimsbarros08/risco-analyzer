@@ -215,7 +215,7 @@ def create_ini_file(params, folder):
 
 def run(job_id, con, folder):
     print "-------"
-    print "Running Classical PSHA hazard..."
+    print "Running PSHA hazard..."
     
     cur = con.cursor()
 

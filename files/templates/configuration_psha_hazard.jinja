@@ -54,6 +54,10 @@ ses_per_logic_tree_path = {{ ses_per_logic_tree_path}}
 
 export_dir = ./tmp
 mean_hazard_curves = true
+{% if type == 'event_based' %}
+hazard_curves_from_gmfs = true
+ground_motion_fields = true
+{% endif %}
 individual_curves = true
 quantile_hazard_curves = {% for quantile in quantile_hazard_curves %} {{ quantile }} {% endfor %}
 hazard_maps = true
