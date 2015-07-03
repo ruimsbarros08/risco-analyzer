@@ -401,7 +401,8 @@ def start(id, connection):
     data = cur.fetchone()
 
 
-    params = dict(name = data[0],
+    params = dict(type='classical',
+                name = data[0],
                 region = data[1].split('(')[2].split(')')[0],
                 grid_spacing = data[2],
                 sites_type = data[3],
