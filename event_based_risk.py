@@ -72,10 +72,10 @@ def start(id, connection):
                 )
 
 
-    cur.execute('SELECT jobs_classical_psha_risk_vulnerability_models.vulnerability_model_id, eng_models_vulnerability_model.type \
-                FROM jobs_classical_psha_risk_vulnerability_models, eng_models_vulnerability_model \
-                WHERE jobs_classical_psha_risk_vulnerability_models.classical_psha_risk_id = %s \
-                AND jobs_classical_psha_risk_vulnerability_models.vulnerability_model_id = eng_models_vulnerability_model.id', [id])
+    cur.execute('SELECT jobs_classical_psha_risk_vulnerability.vulnerability_model_id, eng_models_vulnerability_model.type \
+                FROM jobs_classical_psha_risk_vulnerability, eng_models_vulnerability_model \
+                WHERE jobs_classical_psha_risk_vulnerability.job_id = %s \
+                AND jobs_classical_psha_risk_vulnerability.vulnerability_model_id = eng_models_vulnerability_model.id', [id])
 
     vulnerability_models = [{'id':e[0], 'type':e[1],} for e in cur.fetchall()]
 
