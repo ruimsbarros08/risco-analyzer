@@ -45,10 +45,10 @@ def start(id, connection):
     cur = connection.cursor()
     cur.execute('SELECT jobs_classical_psha_risk.name, st_astext(jobs_classical_psha_risk.region), \
                 jobs_classical_psha_risk.random_seed, jobs_classical_psha_risk.exposure_model_id, \
-                jobs_classical_psha_risk.hazard_event_based_id, \
+                jobs_event_based_risk.hazard_event_based_id, \
                 jobs_classical_psha_risk.asset_hazard_distance, jobs_classical_psha_risk.lrem_steps_per_interval, \
                 jobs_classical_psha_risk.asset_correlation, jobs_classical_psha_risk.poes, \
-                jobs_classical_psha_risk.quantile_loss_curves \
+                jobs_classical_psha_risk.quantile_loss_curves, \
                 jobs_event_based_risk.loss_curve_resolution \
                 FROM jobs_classical_psha_risk, jobs_event_based_risk \
                 WHERE jobs_classical_psha_risk.id = %s \
