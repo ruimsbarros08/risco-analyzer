@@ -1,7 +1,7 @@
 [general]
 
 description = {{ params.name }}
-calculation_mode = classical_risk
+calculation_mode = {{ params.type }}
 random_seed = {{ params.random_seed }}
 exposure_file = exposure_model.xml
 
@@ -22,7 +22,9 @@ asset_hazard_distance = {{ params.asset_hazard_distance }}
 lrem_steps_per_interval = {{ params.lrem_steps_per_interval }}
 asset_correlation = {{ params.asset_correlation }}
 
-
+{% if params.type == 'event_based' %}
+loss_curve_resolution = {{ params.loss_curve_resolution }}
+{% endif %}
 
 [output]
 

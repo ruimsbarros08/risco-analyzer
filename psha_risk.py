@@ -186,7 +186,8 @@ def start(id, connection):
 
     region_wkt = data[1]
 
-    params = dict(name = data[0],
+    params = dict(type= 'classical_risk',
+                name = data[0],
                 region = data[1].split('(')[2].split(')')[0],
                 random_seed = data[2],
                 exposure_model_id = data[3],
