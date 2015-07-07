@@ -268,7 +268,7 @@ def run(job_id, con, folder):
     cur.execute('update jobs_classical_psha_hazard set oq_id = %s where id = %s', (hazard_output_id, job_id))
     con.commit()
 
-    return oq_curves_ids, oq_map_ids
+    return oq_curves_ids, oq_map_ids, hazard_output_id
 
 
 def save(job_id, oq_curves_ids, oq_map_ids, con):
