@@ -31,6 +31,9 @@ def run(hazard_id, con, folder):
     print "-------"
     print "Running Classical PSHA risk..."
     
+    celeryd_node = subprocess.Popen('./celeryd_start_node.sh')
+    celeryd_node.wait()
+    
     cur = con.cursor()
     proc = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--rr", folder+"/configuration.ini", "--hazard-calculation-id", str(hazard_id)], stdout=subprocess.PIPE)
     proc.wait()
