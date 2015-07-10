@@ -219,8 +219,8 @@ def run(job_id, con, folder):
     
     cur = con.cursor()
 
-    celeryd_node = subprocess.Popen('./celeryd_start_node.sh')
-    celeryd_node.wait()
+    # celeryd_node = subprocess.Popen('./celeryd_start_node.sh')
+    # celeryd_node.wait()
 
     proc_hazard = subprocess.Popen(["oq-engine", "--log-file", folder+"/log.txt", "--rh", folder+"/configuration.ini"], stdout=subprocess.PIPE)
     proc_hazard.wait()
