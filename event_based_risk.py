@@ -89,7 +89,7 @@ def start(id, connection):
     cur.execute('SELECT oq_id FROM jobs_classical_psha_hazard WHERE id = %s', (params['hazard_id'],))
     hazard_calculation_id = cur.fetchone()[0]
 
-    oq_curves_ids, oq_map_ids = run(hazard_calculation_id, connection, FOLDER)
+    oq_curves_ids, oq_map_ids = run(id, hazard_calculation_id, connection, FOLDER)
     save(id, oq_curves_ids, oq_map_ids, connection)
 
 

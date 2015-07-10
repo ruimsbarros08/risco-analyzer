@@ -27,9 +27,9 @@ def create_ini_file(params, vulnerability_models, folder):
 
 
 
-def run(hazard_id, con, folder):
+def run(job_id, hazard_id, con, folder):
     print "-------"
-    print "Running Classical PSHA risk..."
+    print "Running risk..."
     
     # celeryd_node = subprocess.Popen('./celeryd_start_node.sh')
     # celeryd_node.wait()
@@ -216,7 +216,7 @@ def start(id, connection):
     create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
 
     create_ini_file(params, vulnerability_models, FOLDER)
-    oq_curves_ids, oq_map_ids = run(params['hazard_id'], connection, FOLDER)
+    oq_curves_ids, oq_map_ids = run(id, params['hazard_id'], connection, FOLDER)
     save(id, oq_curves_ids, oq_map_ids, connection)
 
 
