@@ -114,7 +114,17 @@ def start(id, connection):
     for model in vulnerability_models:
         create_vulnerability_model(model['id'], connection, FOLDER)
 
-    assets = create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
+
+    cur.execute('SELECT st_astext(region), max_distance FROM jobs_classical_psha_hazard WHERE id =%s', (params['hazard_id'], ))
+    hazard_data = cur.fetchone()
+
+    # cur.execute('SELECT st_astext( ST_Intersection( ST_Buffer( ST_GeomFromText(%s, 4326), %s ), ST_GeomFromText(%s, 4326) ) )', (hazard_data[0], "radius_of_buffer_in_meters="+str(hazard_data[1]*1000), region_wkt))
+    # assets_region = cur.fetchone()[0]
+
+    cur.execute('SELECT st_astext( ST_Intersection( ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326) ) )', (hazard_data[0], region_wkt))
+    assets_region = cur.fetchone()[0]
+
+    assets = create_exposure_model(params['exposure_model_id'], connection, FOLDER, assets_region)
 
     create_ini_file(params, vulnerability_models, assets, FOLDER)
 
@@ -128,3 +138,6 @@ def start(id, connection):
 
     cur.execute("UPDATE jobs_classical_psha_risk SET status = 'FINISHED' WHERE id = %s", (id,))
     connection.commit()
+
+
+
