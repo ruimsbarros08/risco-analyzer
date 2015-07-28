@@ -38,13 +38,28 @@ def save_ses_ruptures(job_id, hazard_output_id, con):
 	for id in data:
 		print "output id: "+str(id[0])
 
-		cur.execute("INSERT INTO jobs_event_based_hazard_ses_rupture (job_id, output_id, ses_id, rupture_id, rake, magnitude, location, depth) \
-					SELECT %s, c.output_id, a.ses_id, a.rupture_id, b.rake, b.magnitude, ST_GeomFromText('POINT(' || b._hypocenter[1] || ' ' || b._hypocenter[2] || ')', 4326), b._hypocenter[3]  \
-					FROM foreign_ses_rupture as a, foreign_probabilistic_rupture as b, foreign_ses_collection as c \
-					WHERE c.output_id = %s \
-					AND b.ses_collection_id = c.id \
-					AND a.rupture_id = b.id", (job_id, id[0],))
+		# cur.execute("INSERT INTO jobs_event_based_hazard_ses_rupture (job_id, output_id, ses_id, rupture_id, rake, magnitude, location, depth) \
+		# 			SELECT %s, c.output_id, a.ses_id, a.rupture_id, b.rake, b.magnitude, ST_GeomFromText('POINT(' || b._hypocenter[1] || ' ' || b._hypocenter[2] || ')', 4326), b._hypocenter[3]  \
+		# 			FROM foreign_ses_rupture as a, foreign_probabilistic_rupture as b, foreign_ses_collection as c \
+		# 			WHERE c.output_id = %s \
+		# 			AND b.ses_collection_id = c.id \
+		# 			AND a.rupture_id = b.id", (job_id, id[0],))
+		# con.commit()
+
+		cur.execute("INSERT INTO jobs_event_based_hazard_ses_rupture (job_id, output_id, ses_id, rupture_id, rake, magnitude, location, depth, weight) \
+					SELECT %s, foreign_ses_collection.output_id, foreign_ses_rupture.ses_id, foreign_ses_rupture.rupture_id, foreign_probabilistic_rupture.rake, \
+					foreign_probabilistic_rupture.magnitude, \
+					ST_GeomFromText('POINT(' || foreign_probabilistic_rupture._hypocenter[1] || ' ' || foreign_probabilistic_rupture._hypocenter[2] || ')', 4326), foreign_probabilistic_rupture._hypocenter[3]  \
+					FROM foreign_ses_rupture, foreign_probabilistic_rupture, foreign_ses_collection, \
+					foreign_assoc_lt_rlz_trt_model, foreign_gmf, foreign_lt_realization \
+					WHERE foreign_ses_collection.output_id = %s \
+					AND foreign_probabilistic_rupture.ses_collection_id = foreign_ses_collection.id \
+					AND foreign_ses_rupture.rupture_id = foreign_probabilistic_rupture.id \
+					AND foreign_assoc_lt_rlz_trt_model.trt_model_id = foreign_ses_collection.trt_model_id \
+					AND foreign_gmf.lt_realization_id = foreign_assoc_lt_rlz_trt_model.rlz_id \
+					AND foreign_lt_realization.id = foreign_gmf.lt_realization_id", (job_id, id[0],))
 		con.commit()
+
 
 
 

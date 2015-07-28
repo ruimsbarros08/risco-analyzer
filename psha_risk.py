@@ -78,10 +78,10 @@ def run(job_id, hazard_id, con, folder):
                         'insured': e[4] } for e in cur.fetchall() ]
 
 
-    cur.execute('update jobs_classical_psha_risk set oq_id = %s where id = %s', (risk_output_id, job_id))
+    cur.execute('UPDATE jobs_classical_psha_risk SET oq_id = %s WHERE id = %s', (risk_output_id, job_id))
     con.commit()
 
-    return oq_curves_ids, oq_map_ids
+    return oq_curves_ids, oq_map_ids, risk_output_id
 
 
 def save(job_id, oq_curves_ids, oq_map_ids, con): 

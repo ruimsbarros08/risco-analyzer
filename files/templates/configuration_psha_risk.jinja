@@ -22,8 +22,10 @@ asset_hazard_distance = {{ params.asset_hazard_distance }}
 lrem_steps_per_interval = {{ params.lrem_steps_per_interval }}
 asset_correlation = {{ params.asset_correlation }}
 
-{% if params.type == 'event_based' %}
+{% if params.type == 'event_based_risk' %}
 loss_curve_resolution = {{ params.loss_curve_resolution }}
+specific_assets = {% for asset in assets %} {{ asset }} {% endfor %}
+
 {% endif %}
 
 [output]
