@@ -114,10 +114,8 @@ def start(id, connection):
     for model in vulnerability_models:
         create_vulnerability_model(model['id'], connection, FOLDER)
 
-    create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
+    assets = create_exposure_model(params['exposure_model_id'], connection, FOLDER, region_wkt)
 
-    cur.execute('SELECT name FROM eng_models_asset WHERE model_id = %s', (params['exposure_model_id'], ))
-    assets = list(asset[0] for asset in cur.fetchall() )
     create_ini_file(params, vulnerability_models, assets, FOLDER)
 
     cur.execute('SELECT oq_id FROM jobs_classical_psha_hazard WHERE id = %s', (params['hazard_id'],))

@@ -146,6 +146,8 @@ def create_exposure_model(id, con, folder, region):
         file.write(exp_output)
         file.close()
 
+    return assets
+
 
 
 def create_ini_file(job_id, con, folder):
