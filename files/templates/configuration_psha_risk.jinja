@@ -19,7 +19,9 @@ region_constraint = {{ params.region }}
 [calculation]
 
 asset_hazard_distance = {{ params.asset_hazard_distance }}
+{% if params.lrem_steps_per_interval %}
 lrem_steps_per_interval = {{ params.lrem_steps_per_interval }}
+{% endif %}
 asset_correlation = {{ params.asset_correlation }}
 
 {% if params.type == 'event_based_risk' %}
