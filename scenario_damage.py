@@ -123,7 +123,7 @@ def create_exposure_model(id, con, folder, region=None):
                     FROM eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model \
                     WHERE eng_models_exposure_model.id = eng_models_asset.model_id \
                     AND eng_models_exposure_model.id = %s \
-                    AND eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id', (id, region))
+                    AND eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id', (id, ))
 
     assets = [dict(id = asset[0],
                     lon = asset[1],
