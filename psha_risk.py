@@ -81,7 +81,7 @@ def run(job_id, hazard_id, con, folder):
     cur.execute('UPDATE jobs_classical_psha_risk SET oq_id = %s WHERE id = %s', (risk_output_id, job_id))
     con.commit()
 
-    return oq_curves_ids, oq_map_ids, risk_output_id
+    return oq_curves_ids, oq_map_ids
 
 
 def save(job_id, oq_curves_ids, oq_map_ids, con): 
@@ -103,7 +103,8 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
                     FROM eng_models_vulnerability_model, jobs_classical_psha_risk_vulnerability, jobs_classical_psha_risk \
                     WHERE eng_models_vulnerability_model.type = %s \
                     AND eng_models_vulnerability_model.id = jobs_classical_psha_risk_vulnerability.vulnerability_model_id \
-                    AND jobs_classical_psha_risk_vulnerability.job_id = %s', (loss_type, job_id))
+                    AND jobs_classical_psha_risk_vulnerability.job_id = %s \
+                    AND jobs_classical_psha_risk.id = jobs_classical_psha_risk_vulnerability.job_id', (loss_type, job_id))
         data = cur.fetchone()
         job_vul_id = data[0]
         exposure_model_id = data[1]
@@ -141,7 +142,8 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
                     FROM eng_models_vulnerability_model, jobs_classical_psha_risk_vulnerability, jobs_classical_psha_risk \
                     WHERE eng_models_vulnerability_model.type = %s \
                     AND eng_models_vulnerability_model.id = jobs_classical_psha_risk_vulnerability.vulnerability_model_id \
-                    AND jobs_classical_psha_risk_vulnerability.job_id = %s', (loss_type, job_id))
+                    AND jobs_classical_psha_risk_vulnerability.job_id = %s \
+                    AND jobs_classical_psha_risk.id = jobs_classical_psha_risk_vulnerability.job_id', (loss_type, job_id))
         data = cur.fetchone()
         job_vul_id = data[0]
         exposure_model_id = data[1]
