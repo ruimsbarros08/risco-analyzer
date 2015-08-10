@@ -248,7 +248,7 @@ def start(id, connection):
                 FROM jobs_classical_psha_risk, jobs_event_based_risk, jobs_classical_psha_hazard, jobs_event_based_hazard \
                 WHERE jobs_classical_psha_risk.id = %s \
                 AND jobs_classical_psha_risk.id = jobs_event_based_risk.classical_psha_risk_ptr_id \
-                AND jobs_event_based_risk.hazard_event_based_id = jobs_event_based_hazard.id \
+                AND jobs_event_based_risk.hazard_event_based_id = jobs_event_based_hazard.classical_psha_hazard_ptr_id \
                 AND jobs_event_based_hazard.classical_psha_hazard_ptr_id = jobs_classical_psha_hazard.id', (id,))
     data = cur.fetchone()
 
