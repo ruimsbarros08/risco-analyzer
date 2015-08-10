@@ -73,7 +73,7 @@ def create_fragility_model(job_id, con, folder):
         file.close()
 
 
-def create_exposure_model(id, con, folder, region):
+def create_exposure_model(id, con, folder, region=None):
     print "-------"
     print "Creating Exposure Model"
 
@@ -103,16 +103,27 @@ def create_exposure_model(id, con, folder, region):
                 insurance_limit = e[13],
                 taxonomy_source = e[14])
 
-    cur.execute('SELECT eng_models_asset.id, st_x(location), st_y(location), \
-                eng_models_asset.name, n_buildings, area, struct_cost, struct_deductible, struct_insurance_limit, retrofitting_cost, \
-                non_struct_cost, non_struct_deductible, non_struct_insurance_limit, \
-                contents_cost, contents_deductible, contents_insurance_limit, business_int_cost, business_int_deductible, business_int_insurance_limit, \
-                oc_day, oc_night, oc_transit, eng_models_building_taxonomy.name \
-                FROM eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model \
-                WHERE eng_models_exposure_model.id = eng_models_asset.model_id \
-                AND eng_models_exposure_model.id = %s \
-                AND eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id \
-                AND ST_Within(eng_models_asset.location, ST_GeomFromText(%s, 4326))', (id, region))
+    if region:
+        cur.execute('SELECT eng_models_asset.id, st_x(location), st_y(location), \
+                    eng_models_asset.name, n_buildings, area, struct_cost, struct_deductible, struct_insurance_limit, retrofitting_cost, \
+                    non_struct_cost, non_struct_deductible, non_struct_insurance_limit, \
+                    contents_cost, contents_deductible, contents_insurance_limit, business_int_cost, business_int_deductible, business_int_insurance_limit, \
+                    oc_day, oc_night, oc_transit, eng_models_building_taxonomy.name \
+                    FROM eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model \
+                    WHERE eng_models_exposure_model.id = eng_models_asset.model_id \
+                    AND eng_models_exposure_model.id = %s \
+                    AND eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id \
+                    AND ST_Within(eng_models_asset.location, ST_GeomFromText(%s, 4326))', (id, region))
+    else:
+        cur.execute('SELECT eng_models_asset.id, st_x(location), st_y(location), \
+                    eng_models_asset.name, n_buildings, area, struct_cost, struct_deductible, struct_insurance_limit, retrofitting_cost, \
+                    non_struct_cost, non_struct_deductible, non_struct_insurance_limit, \
+                    contents_cost, contents_deductible, contents_insurance_limit, business_int_cost, business_int_deductible, business_int_insurance_limit, \
+                    oc_day, oc_night, oc_transit, eng_models_building_taxonomy.name \
+                    FROM eng_models_building_taxonomy , eng_models_asset, eng_models_exposure_model \
+                    WHERE eng_models_exposure_model.id = eng_models_asset.model_id \
+                    AND eng_models_exposure_model.id = %s \
+                    AND eng_models_asset.taxonomy_id = eng_models_building_taxonomy.id', (id, region))
 
     assets = [dict(id = asset[0],
                     lon = asset[1],

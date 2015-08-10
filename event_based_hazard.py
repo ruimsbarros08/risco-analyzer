@@ -122,7 +122,7 @@ def start(id, connection):
 				exposure_model= data[25])
 
 	if params['locations_type'] == 'EXPOSURE':
-		create_exposure_model(params['exposure_model'], connection, FOLDER, params['region'])
+		create_exposure_model(params['exposure_model'], connection, FOLDER)
 		# params['region'] = params['region'].split('(')[2].split(')')[0]
 
 	elif params['locations_type'] == 'GRID':
