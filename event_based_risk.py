@@ -194,19 +194,19 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
         #             AND jobs_event_based_hazard_ses_rupture.job_id = %s", (model['job_vul'], oq_job_id, loss_type, exposure_model_id, hazard_job_id))
         # connection.commit()
 
-        cur.execute("SELECT jobs_event_based_hazard_ses_rupture.ses_id,  sum(foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight) as l \
+        cur.execute("SELECT jobs_event_based_hazard_ses_rupture.ses_id, sum(foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight) as l \
                     FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
                     WHERE jobs_event_based_hazard_ses_rupture.job_id = %s \
                     AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
+                    AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
                     AND foreign_output.oq_job_id = %s \
                     AND foreign_output.output_type = 'event_loss_asset' \
                     AND foreign_event_loss.loss_type = %s \
                     AND foreign_event_loss.output_id = foreign_output.id \
-                    AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
                     GROUP BY jobs_event_based_hazard_ses_rupture.ses_id \
                     ORDER BY l DESC", (hazard_job_id, oq_job_id, loss_type ))
 
-        investigation_time_loss_values = cursor.fetchall()
+        investigation_time_loss_values = cur.fetchall()
 
         annual_time_loss_rates=(numpy.arange(1,nr_ses+1)/float(nr_ses))/float(investigation_time)
         period = 1/annual_time_loss_rates
@@ -215,7 +215,7 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
                     SET it_loss_values = %s, \
                     at_loss_rates = %s, \
                     periods = %s \
-                    WHERE id = %s", (investigation_time_loss_values, annual_time_loss_rates, period, model['id']) )
+                    WHERE id = %s", (investigation_time_loss_values, annual_time_loss_rates, period, model['job_vul']) )
         connection.commit()
 
 
@@ -282,16 +282,13 @@ def start(id, connection):
         create_vulnerability_model(model['id'], connection, FOLDER)
 
 
-    cur.execute('SELECT st_astext(region), max_distance FROM jobs_classical_psha_hazard WHERE id =%s', (params['hazard_id'], ))
-    hazard_data = cur.fetchone()
+    # cur.execute('SELECT st_astext(region), max_distance FROM jobs_classical_psha_hazard WHERE id =%s', (params['hazard_id'], ))
+    # hazard_data = cur.fetchone()
 
-    # cur.execute('SELECT st_astext( ST_Intersection( ST_Buffer( ST_GeomFromText(%s, 4326), %s ), ST_GeomFromText(%s, 4326) ) )', (hazard_data[0], "radius_of_buffer_in_meters="+str(hazard_data[1]*1000), region_wkt))
+    # cur.execute('SELECT st_astext( ST_Intersection( ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326) ) )', (hazard_data[0], region_wkt))
     # assets_region = cur.fetchone()[0]
 
-    cur.execute('SELECT st_astext( ST_Intersection( ST_GeomFromText(%s, 4326), ST_GeomFromText(%s, 4326) ) )', (hazard_data[0], region_wkt))
-    assets_region = cur.fetchone()[0]
-
-    assets = create_exposure_model(params['exposure_model_id'], connection, FOLDER, assets_region)
+    assets = create_exposure_model(params['exposure_model_id'], connection, FOLDER, data[1])
 
     create_ini_file(params, vulnerability_models, assets, FOLDER)
 
@@ -301,7 +298,7 @@ def start(id, connection):
     oq_curves_ids, oq_map_ids, oq_job_id = run(id, hazard_calculation_id, connection, FOLDER)
     save(id, oq_curves_ids, oq_map_ids, connection)
 
-    save_event_loss_table(risk_output_id, vulnerability_models, params['exposure_model_id'], params['hazard_id'], connection)
+    # save_event_loss_table(risk_output_id, vulnerability_models, params['exposure_model_id'], params['hazard_id'], connection)
     save_event_loss_table(oq_job_id, vulnerability_models, params['hazard_id'], params['investigation_time'], params['nr_ses'], connection)
 
 
