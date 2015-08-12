@@ -215,7 +215,10 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
                     SET it_loss_values = %s, \
                     at_loss_rates = %s, \
                     periods = %s \
-                    WHERE id = %s", (investigation_time_loss_values, annual_time_loss_rates, period, model['job_vul']) )
+                    WHERE id = %s", (investigation_time_loss_values.tolist()
+                                    ,annual_time_loss_rates.tolist()
+                                    ,period.tolist()
+                                    ,model['job_vul']) )
         connection.commit()
 
 
