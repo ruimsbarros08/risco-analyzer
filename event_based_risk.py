@@ -194,19 +194,21 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
         #             AND jobs_event_based_hazard_ses_rupture.job_id = %s", (model['job_vul'], oq_job_id, loss_type, exposure_model_id, hazard_job_id))
         # connection.commit()
 
-        cur.execute("SELECT jobs_event_based_hazard_ses_rupture.ses_id, sum(foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight) as l \
+        cur.execute("SELECT sum(foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight) as l \
                     FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
-                    WHERE jobs_event_based_hazard_ses_rupture.job_id = %s \
-                    AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
-                    AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
-                    AND foreign_output.oq_job_id = %s \
+                    WHERE foreign_output.oq_job_id = %s \
                     AND foreign_output.output_type = 'event_loss_asset' \
-                    AND foreign_event_loss.loss_type = %s \
                     AND foreign_event_loss.output_id = foreign_output.id \
+                    AND foreign_event_loss.loss_type = %s \
+                    AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
+                    AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
+                    AND jobs_event_based_hazard_ses_rupture.job_id = %s \
                     GROUP BY jobs_event_based_hazard_ses_rupture.ses_id \
-                    ORDER BY l DESC", (hazard_job_id, oq_job_id, loss_type ))
+                    ORDER BY l DESC", (oq_job_id, hazard_job_id, loss_type ))
 
-        investigation_time_loss_values = cur.fetchall()
+        print 'Query done'
+
+        investigation_time_loss_values = [ loss[0] for loss in cur.fetchall()]
 
         annual_time_loss_rates=(numpy.arange(1,nr_ses+1)/float(nr_ses))/float(investigation_time)
         period = 1/annual_time_loss_rates
@@ -215,10 +217,10 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
                     SET it_loss_values = %s, \
                     at_loss_rates = %s, \
                     periods = %s \
-                    WHERE id = %s", (investigation_time_loss_values.tolist()
-                                    ,annual_time_loss_rates.tolist()
-                                    ,period.tolist()
-                                    ,model['job_vul']) )
+                    WHERE id = %s", (investigation_time_loss_values,
+                                    annual_time_loss_rates.tolist(),
+                                    period.tolist(),
+                                    model['job_vul']) )
         connection.commit()
 
 
