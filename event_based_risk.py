@@ -204,11 +204,11 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
                     AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
                     AND jobs_event_based_hazard_ses_rupture.job_id = %s \
                     GROUP BY jobs_event_based_hazard_ses_rupture.ses_id \
-                    ORDER BY l DESC", (oq_job_id, hazard_job_id, loss_type ))
+                    ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
 
         print 'Query done'
 
-        investigation_time_loss_values = [ loss[0] for loss in cur.fetchall()]
+        investigation_time_loss_values = [ loss[0] for loss in cur.fetchall() ]
 
         annual_time_loss_rates=(numpy.arange(1,nr_ses+1)/float(nr_ses))/float(investigation_time)
         period = 1/annual_time_loss_rates
