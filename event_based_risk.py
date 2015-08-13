@@ -201,6 +201,9 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
 
         #SAVE LIST ALTERNATIVE
 
+        default_vector = numpy.array([10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 10000])
+
+        #AGGREGATE
         cur.execute("SELECT sum(foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight) as l \
                     FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
                     WHERE foreign_output.oq_job_id = %s \
@@ -217,8 +220,17 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
         annual_time_loss_rates=(numpy.arange(1,nr_ses+1)/float(nr_ses))/float(investigation_time)
         period = 1/annual_time_loss_rates
 
+        agg_def_periods = numpy.array([])
+        for year in default_vector:
+            if year > min(period) and year < max(period):
+                agg_def_periods.append(year)
 
+        investigation_time_loss_values_table = numpy.interp(agg_def_periods, period[::-1],investigation_time_loss_values[::-1])[::-1]
+        a = investigation_time_loss_values * annual_time_loss_rates
+        aal_agg = sum(a)
+        tce_agg = numpy.interp(agg_def_periods, period[::-1], numpy.cumsum(a)[::-1])[::-1]
 
+        #OCCURANCES
         cur.execute("SELECT foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight AS l \
                     FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
                     WHERE foreign_output.oq_job_id = %s \
@@ -230,27 +242,57 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
                     AND jobs_event_based_hazard_ses_rupture.job_id = %s \
                     ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
 
+        #TOTAL VALUES
         investigation_time_loss_values_occ = [ loss[0] for loss in cur.fetchall() ]
         annual_time_loss_rates_occ=(numpy.arange(1,len(investigation_time_loss_values_occ)+1)/float(len(investigation_time_loss_values_occ)))/float(investigation_time)
         period_occ = 1/annual_time_loss_rates_occ
 
-        investigation_time_loss_values_occ = np.interp(np.arange(period_occ[-1],period_occ[0],(period_occ[0]-period_occ[-1])/100),period_occ[::-1],investigation_time_loss_values_occ[::-1])[::-1]
+        occ_def_periods = numpy.array([])
+        for year in default_vector:
+            if year > min(period_occ) and year < max(period_occ):
+                occ_def_periods.append(year)
+
+        investigation_time_loss_values_occ_table = numpy.interp(occ_def_periods, period_occ[::-1],investigation_time_loss_values_occ[::-1])[::-1]
+        a = investigation_time_loss_values_occ * annual_time_loss_rates_occ
+        aal_occ = sum(a)
+        tce_occ = numpy.interp(occ_def_periods, period[::-1], numpy.cumsum(a)[::-1])[::-1]
+
+
+        #100 VALUES
+        investigation_time_loss_values_occ = numpy.interp(numpy.arange(period_occ[-1],period_occ[0],(period_occ[0]-period_occ[-1])/100),period_occ[::-1],investigation_time_loss_values_occ[::-1])[::-1]
         annual_time_loss_rates_occ=(numpy.arange(1,len(investigation_time_loss_values_occ)+1)/float(len(investigation_time_loss_values_occ)))/float(investigation_time)
         period_occ = 1/annual_time_loss_rates_occ
 
+
         cur.execute("UPDATE jobs_classical_psha_risk_vulnerability \
-                    SET it_loss_values = %s, \
-                    at_loss_rates = %s, \
-                    periods = %s, \
+                    SET it_loss_values_agg = %s, \
+                    at_loss_rates_agg = %s, \
+                    periods_agg = %s, \
+                    default_periods_agg = %s, \
+                    it_loss_values_table_agg = %s, \
+                    aal_agg = %s, \
+                    tce_agg = %s, \
                     it_loss_values_occ = %s, \
                     at_loss_rates_occ = %s, \
                     periods_occ = %s, \
+                    default_periods_occ = %s, \
+                    it_loss_values_table_occ = %s, \
+                    aal_occ = %s, \
+                    tce_occ = %s \
                     WHERE id = %s", (investigation_time_loss_values,
                                     annual_time_loss_rates.tolist(),
                                     period.tolist(),
+                                    agg_def_periods.tolist(),
+                                    investigation_time_loss_values_table.tolist(),
+                                    aal_agg,
+                                    tce_agg.tolist(),
                                     investigation_time_loss_values_occ,
                                     annual_time_loss_rates_occ.tolist(),
                                     period_occ.tolist(),
+                                    occ_def_periods.tolist(),
+                                    investigation_time_loss_values_occ_table.tolist(),
+                                    aal_occ,
+                                    tce_occ.tolist(),
                                     model['job_vul']) )
         connection.commit()
 
