@@ -164,7 +164,8 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
 
 
 
-def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, investigation_time, nr_ses, connection):
+# def save_event_loss_table(job_id, vulnerability_models, hzrdr_oq_id, riskr_oq_id, exp_model_id, connection):
+def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investigation_time, nr_ses, connection):
     print "-------"
     print "Storing Event Loss Tables"
 
@@ -177,6 +178,8 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
             loss_type =  model['type'].split('_vulnerability')[0]
         
         print '* '+loss_type
+
+        #SAVE ALL ALTERNATIVE
 
         # cur.execute("INSERT INTO jobs_event_loss_table (rupture_id, job_vulnerability_id, asset_id, loss) \
         #             SELECT jobs_event_based_hazard_ses_rupture.id, %s, eng_models_asset.id, foreign_event_loss_asset.loss \
@@ -194,6 +197,10 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
         #             AND jobs_event_based_hazard_ses_rupture.job_id = %s", (model['job_vul'], oq_job_id, loss_type, exposure_model_id, hazard_job_id))
         # connection.commit()
 
+
+
+        #SAVE LIST ALTERNATIVE
+
         cur.execute("SELECT sum(foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight) as l \
                     FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
                     WHERE foreign_output.oq_job_id = %s \
@@ -206,23 +213,104 @@ def save_event_loss_table(oq_job_id, vulnerability_models, hazard_job_id, invest
                     GROUP BY jobs_event_based_hazard_ses_rupture.ses_id \
                     ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
 
-        print 'Query done'
-
         investigation_time_loss_values = [ loss[0] for loss in cur.fetchall() ]
-
         annual_time_loss_rates=(numpy.arange(1,nr_ses+1)/float(nr_ses))/float(investigation_time)
         period = 1/annual_time_loss_rates
+
+
+
+        cur.execute("SELECT foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight AS l \
+                    FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
+                    WHERE foreign_output.oq_job_id = %s \
+                    AND foreign_output.output_type = 'event_loss_asset' \
+                    AND foreign_event_loss.output_id = foreign_output.id \
+                    AND foreign_event_loss.loss_type = %s \
+                    AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
+                    AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
+                    AND jobs_event_based_hazard_ses_rupture.job_id = %s \
+                    ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
+
+        investigation_time_loss_values_occ = [ loss[0] for loss in cur.fetchall() ]
+        annual_time_loss_rates_occ=(numpy.arange(1,len(investigation_time_loss_values_occ)+1)/float(len(investigation_time_loss_values_occ)))/float(investigation_time)
+        period_occ = 1/annual_time_loss_rates_occ
+
+        investigation_time_loss_values_occ = np.interp(np.arange(period_occ[-1],period_occ[0],(period_occ[0]-period_occ[-1])/100),period_occ[::-1],investigation_time_loss_values_occ[::-1])[::-1]
+        annual_time_loss_rates_occ=(numpy.arange(1,len(investigation_time_loss_values_occ)+1)/float(len(investigation_time_loss_values_occ)))/float(investigation_time)
+        period_occ = 1/annual_time_loss_rates_occ
 
         cur.execute("UPDATE jobs_classical_psha_risk_vulnerability \
                     SET it_loss_values = %s, \
                     at_loss_rates = %s, \
-                    periods = %s \
+                    periods = %s, \
+                    it_loss_values_occ = %s, \
+                    at_loss_rates_occ = %s, \
+                    periods_occ = %s, \
                     WHERE id = %s", (investigation_time_loss_values,
                                     annual_time_loss_rates.tolist(),
                                     period.tolist(),
+                                    investigation_time_loss_values_occ,
+                                    annual_time_loss_rates_occ.tolist(),
+                                    period_occ.tolist(),
                                     model['job_vul']) )
         connection.commit()
 
+    cur.execute("DELETE FROM foreign_event_loss_asset \
+                WHERE id IN \
+                ( SELECT  foreign_event_loss_asset.id \
+                FROM foreign_output, foreign_event_loss, foreign_event_loss_asset \
+                WHERE foreign_output.oq_job_id = %s \
+                AND foreign_output.output_type = 'event_loss_asset' \
+                AND foreign_event_loss.output_id = foreign_output.id \
+                AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id )", (oq_job_id, ))
+    connection.commit()
+
+
+        #MARIO
+        # print 'Populating SES_To_Risk'
+        # cur.execute("INSERT INTO jobs_ses_to_risk (ses_collection_id, ses_output_id, gmf_id, hzrdr_job_id, riskr_job_id, weight) \
+        #             SELECT B.id AS ses_collection_id, \
+        #                     A.id AS ses_output_id, \
+        #                     D.output_id AS gmf_id, %s, %s, \
+        #                     E.weight \
+        #             FROM foreign_output AS A, \
+        #                 foreign_ses_collection AS B, \
+        #                 foreign_assoc_lt_rlz_trt_model AS C, \
+        #                 foreign_gmf AS D, \
+        #                 foreign_lt_realization AS E \
+        #             WHERE A.oq_job_id = %s \
+        #             AND A.output_type = 'ses' \
+        #             AND B.output_id = A.id \
+        #             AND C.trt_model_id = B.trt_model_id \
+        #             AND D.lt_realization_id = C.rlz_id \
+        #             AND E.id = D.lt_realization_id;", (hzrdr_oq_id, riskr_oq_id, hzrdr_oq_id,))
+        # connection.commit()
+
+        # print 'Populating Risk'
+        # cur.execute("INSERT INTO jobs_risk (rupture_id, loss, hazard_output_id, asset_id, job_vulnerability_id) \
+        #             SELECT C.rupture_id, C.loss, B.hazard_output_id, E.id, %s \
+        #             FROM foreign_output AS A, foreign_event_loss AS B, foreign_event_loss_asset AS C, \
+        #             foreign_exposure_data AS D, eng_models_asset AS E \
+        #             WHERE A.oq_job_id = %s \
+        #             AND A.output_type = 'event_loss_asset' \
+        #             AND B.loss_type = %s \
+        #             AND B.output_id = A.id \
+        #             AND C.event_loss_id = B.id \
+        #             AND D.id = C.asset_id \
+        #             AND D.asset_ref = E.name \
+        #             AND E.model_id = %s ", (model['job_vul'], riskr_oq_id, loss_type, exp_model_id,))
+        # connection.commit()
+
+
+        # print 'Populating Loss'
+        # cur.execute("INSERT INTO jobs_loss (ses_id, loss_total, hazard_output_id, job_vulnerability_id, asset_id, weight) \
+        #             SELECT A.ses_id, sum(C.loss) AS loss_total, C.hazard_output_id, C.job_vulnerability_id, C.asset_id, B.weight \
+        #             FROM hzrdr_eb AS A, ses_to_risk_eb AS B, riskr_eb AS C \
+        #             WHERE B.riskr_job_id = %s \
+        #             AND B.gmf_id = C.hazard_output_id \
+        #             AND C.rupture_id = A.id \
+        #             GROUP BY A.ses_id,B.weight, C.hazard_output_id,C.loss_type,C.asset_ref,C.taxonomy,C.site \
+        #             ORDER BY A.ses_id;", (riskr_oq_id,))
+        # connection.commit()
 
 
 def start(id, connection):

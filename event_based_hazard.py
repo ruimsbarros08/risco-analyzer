@@ -47,11 +47,11 @@ def save_ses_ruptures(job_id, hazard_output_id, con):
 		# 			AND a.rupture_id = b.id", (job_id, id[0],))
 		# con.commit()
 
-		cur.execute("INSERT INTO jobs_event_based_hazard_ses_rupture (job_id, output_id, ses_id, rupture_id, rake, magnitude, location, depth, weight, rupture_oq) \
+		cur.execute("INSERT INTO jobs_event_based_hazard_ses_rupture (job_id, output_id, ses_id, rupture_id, rake, magnitude, location, depth, weight) \
 					SELECT %s, foreign_ses_collection.output_id, foreign_ses_rupture.ses_id, foreign_ses_rupture.id, foreign_probabilistic_rupture.rake, \
 					foreign_probabilistic_rupture.magnitude, \
 					ST_GeomFromText('POINT(' || foreign_probabilistic_rupture._hypocenter[1] || ' ' || foreign_probabilistic_rupture._hypocenter[2] || ')', 4326), \
-					foreign_probabilistic_rupture._hypocenter[3], foreign_lt_realization.weight, foreign_ses_rupture.rupture_id  \
+					foreign_probabilistic_rupture._hypocenter[3], foreign_lt_realization.weight  \
 					FROM foreign_ses_rupture, foreign_probabilistic_rupture, foreign_ses_collection, \
 					foreign_assoc_lt_rlz_trt_model, foreign_gmf, foreign_lt_realization \
 					WHERE foreign_ses_collection.output_id = %s \
