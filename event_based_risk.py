@@ -166,7 +166,7 @@ def save(job_id, oq_curves_ids, oq_map_ids, con):
 
 
 # def save_event_loss_table(job_id, vulnerability_models, hzrdr_oq_id, riskr_oq_id, exp_model_id, connection):
-def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investigation_time, nr_ses, connection, folder):
+def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investigation_time, connection, folder):
 	print "-------"
 	print "Storing Event Loss Tables"
 
@@ -219,7 +219,7 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
 					ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
 
 		investigation_time_loss_values = [ loss[0] for loss in cur.fetchall() ]
-		annual_time_loss_rates=(numpy.arange(1,nr_ses+1)/float(nr_ses))/float(investigation_time)
+		annual_time_loss_rates=(numpy.arange(1,len(investigation_time_loss_values)+1)/float(len(investigation_time_loss_values)))/float(investigation_time)
 		period = 1/annual_time_loss_rates
 
 
@@ -456,7 +456,7 @@ def start(id, connection):
 	save(id, oq_curves_ids, oq_map_ids, connection)
 
 	# save_event_loss_table(risk_output_id, vulnerability_models, params['exposure_model_id'], params['hazard_id'], connection)
-	save_event_loss_table(oq_job_id, vulnerability_models, params['hazard_id'], params['investigation_time'], params['nr_ses'], connection, FOLDER)
+	save_event_loss_table(oq_job_id, vulnerability_models, params['hazard_id'], params['investigation_time'], connection, FOLDER)
 
 
 
