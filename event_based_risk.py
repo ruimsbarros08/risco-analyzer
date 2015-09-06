@@ -206,14 +206,26 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
 
 		print 'Aggregate'
 		#AGGREGATE
-		cur.execute("SELECT sum(foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight) as l \
-					FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
+		# cur.execute("SELECT sum(foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight) as l \
+		# 			FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
+		# 			WHERE foreign_output.oq_job_id = %s \
+		# 			AND foreign_output.output_type = 'event_loss_asset' \
+		# 			AND foreign_event_loss.output_id = foreign_output.id \
+		# 			AND foreign_event_loss.loss_type = %s \
+		# 			AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
+		# 			AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
+		# 			AND jobs_event_based_hazard_ses_rupture.job_id = %s \
+		# 			GROUP BY jobs_event_based_hazard_ses_rupture.ses_id \
+		# 			ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
+
+		cur.execute("SELECT sum(foreign_event_loss_data.aggregate_loss * jobs_event_based_hazard_ses_rupture.weight) as l \
+					FROM foreign_output, foreign_event_loss, foreign_event_loss_data, jobs_event_based_hazard_ses_rupture  \
 					WHERE foreign_output.oq_job_id = %s \
-					AND foreign_output.output_type = 'event_loss_asset' \
+					AND foreign_output.output_type = 'event_loss' \
 					AND foreign_event_loss.output_id = foreign_output.id \
 					AND foreign_event_loss.loss_type = %s \
-					AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
-					AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
+					AND foreign_event_loss_data.event_loss_id = foreign_event_loss.id \
+					AND foreign_event_loss_data.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
 					AND jobs_event_based_hazard_ses_rupture.job_id = %s \
 					GROUP BY jobs_event_based_hazard_ses_rupture.ses_id \
 					ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
@@ -224,7 +236,7 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
 
 
 		rows = zip(annual_time_loss_rates.tolist(), period.tolist(), investigation_time_loss_values)
-		with open(folder+'/results_'+loss_type+'_aggrgate.csv', 'wb') as f:
+		with open(folder+'/results_'+loss_type+'_aggregate.csv', 'wb') as f:
 			writer = csv.writer(f)
 			for row in rows:
 				writer.writerow(row)
@@ -239,19 +251,40 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
 		agg_def_periods = numpy.array(agg_def_periods)
 		investigation_time_loss_values_table = numpy.interp(agg_def_periods, period[::-1],investigation_time_loss_values[::-1])[::-1]
 		a = investigation_time_loss_values * annual_time_loss_rates
+		# a = numpy.array( investigation_time_loss_values) * float(len(investigation_time_loss_values))**-1
 		aal_agg = sum(a)
-		tce_agg = numpy.interp(agg_def_periods, period[::-1], numpy.cumsum(a)[::-1])[::-1]
+		b = numpy.sum([numpy.array(investigation_time_loss_values), numpy.cumsum(a)], axis=0)
+		# tce_agg = numpy.interp(agg_def_periods, period[::-1], numpy.cumsum(a)[::-1])[::-1]
+		tce_agg = numpy.interp(agg_def_periods, period[::-1], b[::-1])[::-1]
+
+		#100 VALUES
+		investigation_time_loss_values = numpy.interp(numpy.arange(period[-1], period[0], (period[0]-period[-1])/100), period[::-1], investigation_time_loss_values[::-1])[::-1]
+		annual_time_loss_rates=(numpy.arange(1,len(investigation_time_loss_values)+1)/float(len(investigation_time_loss_values)))/float(investigation_time)
+		period = 1/annual_time_loss_rates
+
+
 
 		print 'Occurrences'
 		#OCCURRENCES
-		cur.execute("SELECT foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight AS l \
-					FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
+		# cur.execute("SELECT foreign_event_loss_asset.loss * jobs_event_based_hazard_ses_rupture.weight AS l \
+		# 			FROM foreign_output, foreign_event_loss, foreign_event_loss_asset, jobs_event_based_hazard_ses_rupture  \
+		# 			WHERE foreign_output.oq_job_id = %s \
+		# 			AND foreign_output.output_type = 'event_loss_asset' \
+		# 			AND foreign_event_loss.output_id = foreign_output.id \
+		# 			AND foreign_event_loss.loss_type = %s \
+		# 			AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
+		# 			AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
+		# 			AND jobs_event_based_hazard_ses_rupture.job_id = %s \
+		# 			ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
+
+		cur.execute("SELECT foreign_event_loss_data.aggregate_loss * jobs_event_based_hazard_ses_rupture.weight as l \
+					FROM foreign_output, foreign_event_loss, foreign_event_loss_data, jobs_event_based_hazard_ses_rupture  \
 					WHERE foreign_output.oq_job_id = %s \
-					AND foreign_output.output_type = 'event_loss_asset' \
+					AND foreign_output.output_type = 'event_loss' \
 					AND foreign_event_loss.output_id = foreign_output.id \
 					AND foreign_event_loss.loss_type = %s \
-					AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id \
-					AND foreign_event_loss_asset.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
+					AND foreign_event_loss_data.event_loss_id = foreign_event_loss.id \
+					AND foreign_event_loss_data.rupture_id = jobs_event_based_hazard_ses_rupture.rupture_id \
 					AND jobs_event_based_hazard_ses_rupture.job_id = %s \
 					ORDER BY l DESC", (oq_job_id, loss_type, hazard_job_id))
 
@@ -276,8 +309,11 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
 		occ_def_periods = numpy.array(occ_def_periods)
 		investigation_time_loss_values_occ_table = numpy.interp(occ_def_periods, period_occ[::-1],investigation_time_loss_values_occ[::-1])[::-1]
 		a = investigation_time_loss_values_occ * annual_time_loss_rates_occ
+		# a = numpy.array(investigation_time_loss_values_occ) * float(len(investigation_time_loss_values_occ))**-1		
 		aal_occ = sum(a)
-		tce_occ = numpy.interp(occ_def_periods, period_occ[::-1], numpy.cumsum(a)[::-1])[::-1]
+		b = numpy.sum([numpy.array(investigation_time_loss_values_occ), numpy.cumsum(a)], axis=0)
+		# tce_occ = numpy.interp(occ_def_periods, period_occ[::-1], numpy.cumsum(a)[::-1])[::-1]
+		tce_occ = numpy.interp(occ_def_periods, period_occ[::-1], b[::-1])[::-1]
 
 
 		#100 VALUES
@@ -301,7 +337,7 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
 					it_loss_values_table_occ = %s, \
 					aal_occ = %s, \
 					tce_occ = %s \
-					WHERE id = %s", (investigation_time_loss_values,
+					WHERE id = %s", (investigation_time_loss_values.tolist(),
 									annual_time_loss_rates.tolist(),
 									period.tolist(),
 									agg_def_periods.tolist(),
@@ -318,15 +354,15 @@ def save_event_loss_table(oq_job_id, vulnerability_models,hazard_job_id, investi
 									model['job_vul']) )
 		connection.commit()
 
-	cur.execute("DELETE FROM foreign_event_loss_asset \
-				WHERE id IN \
-				( SELECT  foreign_event_loss_asset.id \
-				FROM foreign_output, foreign_event_loss, foreign_event_loss_asset \
-				WHERE foreign_output.oq_job_id = %s \
-				AND foreign_output.output_type = 'event_loss_asset' \
-				AND foreign_event_loss.output_id = foreign_output.id \
-				AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id )", (oq_job_id, ))
-	connection.commit()
+	# cur.execute("DELETE FROM foreign_event_loss_asset \
+	# 			WHERE id IN \
+	# 			( SELECT  foreign_event_loss_asset.id \
+	# 			FROM foreign_output, foreign_event_loss, foreign_event_loss_asset \
+	# 			WHERE foreign_output.oq_job_id = %s \
+	# 			AND foreign_output.output_type = 'event_loss_asset' \
+	# 			AND foreign_event_loss.output_id = foreign_output.id \
+	# 			AND foreign_event_loss_asset.event_loss_id = foreign_event_loss.id )", (oq_job_id, ))
+	# connection.commit()
 
 
 		#MARIO
